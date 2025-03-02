@@ -4,6 +4,7 @@ services:
   backend:
     build:
       context: .
+    # Puoi mantenere questa porta per debug locale se necessario
     ports:
       - "5000:5000"
     volumes:
@@ -21,7 +22,7 @@ services:
       - FIRST_SUPERUSER_PASSWORD=CaneRed1975-
       - PROJECT_NAME=pecs
       - FRONTEND_HOST=http://localhost:5174
-      - BACKEND_CORS_ORIGINS=http://localhost,http://localhost:5174
+      - BACKEND_CORS_ORIGINS=http://localhost,http://localhost:5174,https://api-pecs.speats.ch
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - DEFAULT_LANGUAGE=${DEFAULT_LANGUAGE:-it}
     command: bash -c "python -m app.backend_pre_start && alembic upgrade head && fastapi run --workers 4 --port 5000 app/main.py"
@@ -30,3 +31,20 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.http.routers.backend.rule=Host(`api-pecs.speats.ch`)
+      - traefik.http.routers.backend.entrypoints=https
+      - traefik.http.routers.backend.tls=true
+      - traefik.http.routers.backend.tls.certresolver=le
+      - traefik.http.services.backend.loadbalancer.server.port=5000
+      - traefik.http.routers.backend-http.rule=Host(`api-pecs.speats.ch`)
+      - traefik.http.routers.backend-http.entrypoints=http
+      - traefik.http.routers.backend-http.middlewares=https-redirect
+    networks:
+      - traefik-public
+
+networks:
+  traefik-public:
+    external: true
