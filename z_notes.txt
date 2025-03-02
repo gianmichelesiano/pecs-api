@@ -13,3 +13,8 @@ python -m alembic revision --autogenerate -m "Add_pictogram_table"
 python -m alembic upgrade head
 
 docker-compose -f docker-compose-backend.yml up
+
+
+sul server
+DOCKER_BUILDKIT=0 docker-compose build
+DOCKER_BUILDKIT=0 docker-compose up -d

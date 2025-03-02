@@ -12,7 +12,7 @@ services:
     env_file:
       - .env
     environment:
-      - POSTGRES_SERVER=host.docker.internal
+      - POSTGRES_SERVER=172.17.0.1
       - POSTGRES_PORT=5432
       - POSTGRES_DB=pecs
       - POSTGRES_USER=postgres
