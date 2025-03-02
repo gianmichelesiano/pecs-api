@@ -1,0 +1,32 @@
+version: '3'
+
+services:
+  backend:
+    build:
+      context: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./app/data:/app/app/data
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_SERVER=host.docker.internal
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=pecs
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=root
+      - SECRET_KEY=89ExatSNsv8CPT9eyow07HXQNmxU0xQk-kda4nPbUoU
+      - FIRST_SUPERUSER=bandigare@gmail.com
+      - FIRST_SUPERUSER_PASSWORD=CaneRed1975-
+      - PROJECT_NAME=pecs
+      - FRONTEND_HOST=http://localhost:5174
+      - BACKEND_CORS_ORIGINS=http://localhost,http://localhost:5174
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - DEFAULT_LANGUAGE=${DEFAULT_LANGUAGE:-it}
+    command: bash -c "python -m app.backend_pre_start && alembic upgrade head && fastapi run --workers 4 --port 5000 app/main.py"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/v1/utils/health-check/ && curl -f http://localhost:5000/api/v1/utils/db-check/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
