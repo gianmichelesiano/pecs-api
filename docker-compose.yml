@@ -1,10 +1,62 @@
-version: '3'
+version: '3.8'
 
 services:
-  backend:
+  db:
+    image: postgres:12
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+    volumes:
+      - app-db-data:/var/lib/postgresql/data/pgdata
+    env_file:
+      - .env
+    environment:
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-root}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-pecs}
+
+  prestart:
     build:
       context: .
-    # Puoi mantenere questa porta per debug locale se necessario
+      dockerfile: Dockerfile
+    networks:
+      - traefik-public
+      - default
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+    command: bash scripts/prestart.sh
+    env_file:
+      - .env
+    environment:
+      - DOMAIN=${DOMAIN:-speats.ch}
+      - FRONTEND_HOST=${FRONTEND_HOST:-http://localhost:5174}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS:-http://localhost,http://localhost:5174}
+      - SECRET_KEY=${SECRET_KEY:-89ExatSNsv8CPT9eyow07HXQNmxU0xQk-kda4nPbUoU}
+      - FIRST_SUPERUSER=${FIRST_SUPERUSER:-bandigare@gmail.com}
+      - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD:-CaneRed1975-}
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - EMAILS_FROM_EMAIL=${EMAILS_FROM_EMAIL:-}
+      - POSTGRES_SERVER=db
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - POSTGRES_DB=${POSTGRES_DB:-pecs}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-root}
+      - SENTRY_DSN=${SENTRY_DSN:-}
+
+  backend-pecs:
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "5000:5000"
     volumes:
@@ -12,17 +64,23 @@ services:
     env_file:
       - .env
     environment:
-      - POSTGRES_SERVER=172.17.0.1
-      - POSTGRES_PORT=5432
-      - POSTGRES_DB=pecs
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=root
-      - SECRET_KEY=89ExatSNsv8CPT9eyow07HXQNmxU0xQk-kda4nPbUoU
-      - FIRST_SUPERUSER=bandigare@gmail.com
-      - FIRST_SUPERUSER_PASSWORD=CaneRed1975-
-      - PROJECT_NAME=pecs
-      - FRONTEND_HOST=http://localhost:5174
-      - BACKEND_CORS_ORIGINS=http://localhost,http://localhost:5174,https://api-pecs.speats.ch
+      - DOMAIN=${DOMAIN:-speats.ch}
+      - FRONTEND_HOST=${FRONTEND_HOST:-http://localhost:5174}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS:-http://localhost,http://localhost:5174,https://api-pecs-backend.speats.ch}
+      - SECRET_KEY=${SECRET_KEY:-89ExatSNsv8CPT9eyow07HXQNmxU0xQk-kda4nPbUoU}
+      - FIRST_SUPERUSER=${FIRST_SUPERUSER:-bandigare@gmail.com}
+      - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD:-CaneRed1975-}
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - EMAILS_FROM_EMAIL=${EMAILS_FROM_EMAIL:-}
+      - POSTGRES_SERVER=db
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - POSTGRES_DB=${POSTGRES_DB:-pecs}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-root}
+      - SENTRY_DSN=${SENTRY_DSN:-}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - DEFAULT_LANGUAGE=${DEFAULT_LANGUAGE:-it}
     command: bash -c "python -m app.backend_pre_start && alembic upgrade head && fastapi run --workers 4 --port 5000 app/main.py"
@@ -34,16 +92,22 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik-public
-      - traefik.http.routers.backend.rule=Host(`api-pecs.speats.ch`)
+      - traefik.http.routers.backend.rule=Host(`api-pecs-backend.speats.ch`)
       - traefik.http.routers.backend.entrypoints=https
       - traefik.http.routers.backend.tls=true
       - traefik.http.routers.backend.tls.certresolver=le
       - traefik.http.services.backend.loadbalancer.server.port=5000
-      - traefik.http.routers.backend-http.rule=Host(`api-pecs.speats.ch`)
+      - traefik.http.routers.backend-http.rule=Host(`api-pecs-backend.speats.ch`)
       - traefik.http.routers.backend-http.entrypoints=http
       - traefik.http.routers.backend-http.middlewares=https-redirect
     networks:
       - traefik-public
+      - default
+    depends_on:
+      - prestart
+
+volumes:
+  app-db-data:
 
 networks:
   traefik-public:
