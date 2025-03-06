@@ -35,8 +35,8 @@ def read_categories(
     if not current_user.is_superuser and is_custom:
         query = query.where(Category.created_by == current_user.id)
     
-    # Order by display_order
-    query = query.order_by(Category.display_order)
+    # Order by display_order (handle None values)
+    query = query.order_by(Category.display_order.nulls_last())
     
     categories = session.exec(query.offset(skip).limit(limit)).all()
     return categories
@@ -64,7 +64,20 @@ def create_category(
         )
     
     # Create the category
-    category = Category.model_validate(category_in.model_dump())
+    category_data = category_in.model_dump()
+    
+    # If display_order is not provided, assign a default value
+    if category_data.get('display_order') is None:
+        # Get the maximum display_order value
+        max_order_result = session.exec(
+            select(func.max(Category.display_order))
+        ).one_or_none()
+        
+        # Set display_order to max + 1, or 1 if no categories exist
+        max_order = max_order_result if max_order_result is not None else 0
+        category_data['display_order'] = max_order + 1
+    
+    category = Category.model_validate(category_data)
     session.add(category)
     session.commit()
     session.refresh(category)

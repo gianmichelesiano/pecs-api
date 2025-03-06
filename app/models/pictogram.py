@@ -61,8 +61,8 @@ class Pictogram(PictogramBase, table=True):
     created_by: Optional[UUID] = Field(default=None, foreign_key="user.id")
     
     # Relazioni
-    categories: List["PictogramCategory"] = Relationship(back_populates="pictogram")
-    sequence_items: List["SequenceItem"] = Relationship(back_populates="pictogram")
+    categories: List["PictogramCategory"] = Relationship(back_populates="pictogram", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
+    sequence_items: List["SequenceItem"] = Relationship(back_populates="pictogram", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
     creator: Optional[User] = Relationship(sa_relationship_kwargs={"foreign_keys": "Pictogram.created_by"})
 
 

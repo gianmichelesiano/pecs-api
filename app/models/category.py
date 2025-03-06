@@ -11,7 +11,7 @@ class CategoryBase(SQLModel):
     name: str = Field(max_length=100)
     icon: Optional[str] = Field(default=None, max_length=100)
     color: str = Field(max_length=20)
-    display_order: int
+    display_order: Optional[int] = Field(default=None)
     is_custom: bool = Field(default=False)
     is_visible: bool = Field(default=True)
 
