@@ -8,6 +8,7 @@ fastapi run --reload --port 5000 app/main.py
 
 cd backend
 
+nella root
 python -m alembic revision --autogenerate -m "Add_pictogram_table"
 
 python -m alembic upgrade head
@@ -18,3 +19,16 @@ docker-compose -f docker-compose-backend.yml up
 sul server
 DOCKER_BUILDKIT=0 docker-compose build
 DOCKER_BUILDKIT=0 docker-compose up -d
+
+mela -> 13644
+apple
+
+
+ .\.venv\Scripts\activate.ps1; cd app; alembic -c ../alembic.ini revision --autogenerate -m "add_categories_table"
+
+
+
+
+
+
+docker-compose -f docker-compose.traefik.yml --env-file .env.traefik down

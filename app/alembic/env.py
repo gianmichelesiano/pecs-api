@@ -21,6 +21,17 @@ fileConfig(config.config_file_name)
 from app.models import SQLModel  # noqa
 from app.core.config import settings # noqa
 
+# Importa esplicitamente tutti i modelli per assicurarsi che siano registrati in SQLModel.metadata
+import app.models.user
+import app.models.item
+import app.models.post
+import app.models.nome
+import app.models.category
+import app.models.pictogram
+import app.models.sequence
+import app.models.sync_log
+import app.models.auth
+
 target_metadata = SQLModel.metadata
 
 # other values from the config, defined by the needs of env.py,

@@ -9,6 +9,7 @@ DO NOT read or modify:
 -   */config/secrets.*
 -   */*.pem
 -   Any file containing API keys, tokens, or credentials
+-   .venv/
 -   venv/
 -   venv/*
 -   node_modules/
@@ -20,3 +21,7 @@ DO NOT read or modify:
 -   Never commit sensitive files
 -   Use environment variables for secrets
 -   Keep credentials out of logs and output
+
+This is an fastapi app, 
+be coincise
+f

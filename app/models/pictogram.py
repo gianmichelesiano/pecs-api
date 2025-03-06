@@ -1,44 +1,75 @@
-from typing import List, Dict, Optional, Any
-from pydantic import BaseModel, Field as PydanticField
-from sqlmodel import Field, SQLModel, JSON
+# models/pictogram.py
+from typing import List, Optional, Dict, Any
+from datetime import datetime
+from sqlmodel import Field, SQLModel, Relationship
+from typing import List, Optional
+from uuid import UUID
+import uuid
 
-class PictogramBase(SQLModel):
-    """Base Pictogram model with shared attributes"""
-    name: str = Field(index=True)
-    language: str = Field(index=True)
-    category: str = Field(index=True)
-    image_url: str
-    description: Optional[str] = None
-    tags: Dict[str, Any] = Field(default={}, sa_type=JSON)
+from .user import User
+from .category import Category
 
-class Pictogram(PictogramBase, table=True):
-    """Pictogram model representing a pictogram in the database"""
-    id: Optional[int] = Field(default=None, primary_key=True)
+# Classi per le richieste API
+class PhraseRequest(SQLModel):
+    phrase: str
 
-class PictogramCreate(PictogramBase):
-    """Model for creating a new pictogram"""
-    pass
+class WordRequest(SQLModel):
+    word: str
 
-class PictogramUpdate(SQLModel):
-    """Model for updating an existing pictogram"""
-    name: Optional[str] = None
-    language: Optional[str] = None
-    category: Optional[str] = None
-    image_url: Optional[str] = None
-    description: Optional[str] = None
-    tags: Optional[Dict[str, Any]] = None
-    
-class PictogramResponse(BaseModel):
-    """Response model for pictogram search results"""
+class PictogramResponse(SQLModel):
     word: str
     id: Optional[int] = None
     url: Optional[str] = None
     error: Optional[str] = None
 
-class PhraseRequest(BaseModel):
-    """Request model for phrase processing"""
-    phrase: str = Field(..., description="Phrase to be processed")
 
-class WordRequest(BaseModel):
-    """Request model for word options"""
-    word: str = Field(..., description="Word to find options for")
+class PictogramBase(SQLModel):
+    word: str = Field(max_length=100)
+    image_url: str
+    is_custom: bool = Field(default=False)
+
+
+class PictogramCreate(PictogramBase):
+    created_by: Optional[UUID] = None
+    # Lista di ID categorie a cui aggiungere il pittogramma
+    category_ids: Optional[List[UUID]] = None
+
+
+class PictogramUpdate(SQLModel):
+    word: Optional[str] = None
+    image_url: Optional[str] = None
+    is_custom: Optional[bool] = None
+    # Se vuoi aggiornare le categorie
+    category_ids: Optional[List[UUID]] = None
+
+
+class PictogramRead(PictogramBase):
+    id: UUID
+    created_at: datetime
+    updated_at: datetime
+    created_by: Optional[UUID] = None
+
+
+class Pictogram(PictogramBase, table=True):
+    __tablename__ = "pictograms"
+    
+    id: UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    created_at: datetime = Field(default_factory=datetime.now)
+    updated_at: datetime = Field(default_factory=datetime.now)
+    created_by: Optional[UUID] = Field(default=None, foreign_key="user.id")
+    
+    # Relazioni
+    categories: List["PictogramCategory"] = Relationship(back_populates="pictogram")
+    sequence_items: List["SequenceItem"] = Relationship(back_populates="pictogram")
+    creator: Optional[User] = Relationship(sa_relationship_kwargs={"foreign_keys": "Pictogram.created_by"})
+
+
+class PictogramCategory(SQLModel, table=True):
+    __tablename__ = "pictogram_categories"
+    
+    pictogram_id: UUID = Field(foreign_key="pictograms.id", primary_key=True)
+    category_id: UUID = Field(foreign_key="categories.id", primary_key=True)
+    
+    # Relazioni
+    pictogram: "Pictogram" = Relationship(back_populates="categories")
+    category: Category = Relationship(back_populates="pictograms")
