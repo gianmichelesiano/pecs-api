@@ -27,6 +27,7 @@ class PictogramBase(SQLModel):
     word: str = Field(max_length=100)
     image_url: str
     is_custom: bool = Field(default=False)
+    lang: str = Field(max_length=10, default="en")
 
 
 class PictogramCreate(PictogramBase):
@@ -39,6 +40,7 @@ class PictogramUpdate(SQLModel):
     word: Optional[str] = None
     image_url: Optional[str] = None
     is_custom: Optional[bool] = None
+    lang: Optional[str] = None
     # Se vuoi aggiornare le categorie
     category_ids: Optional[List[UUID]] = None
 

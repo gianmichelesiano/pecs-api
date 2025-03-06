@@ -9,8 +9,8 @@ fastapi run --reload --port 5000 app/main.py
 cd backend
 
 nella root
-python -m alembic revision --autogenerate -m "Add_pictogram_table"
-
+python -m alembic revision --autogenerate -m "add_lang_field_to_pictogram"
+    
 python -m alembic upgrade head
 
 docker-compose -f docker-compose-backend.yml up
