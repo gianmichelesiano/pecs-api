@@ -61,7 +61,9 @@ def create_item(
     """
     Create new item.
     """
-    item = Item.model_validate(item_in, update={"owner_id": current_user.id})
+    item_data = item_in.model_dump()
+    item_data["owner_id"] = current_user.id
+    item = Item(**item_data)
     session.add(item)
     session.commit()
     session.refresh(item)
@@ -107,3 +109,4 @@ def delete_item(
     session.delete(item)
     session.commit()
     return Message(message="Item deleted successfully")
+

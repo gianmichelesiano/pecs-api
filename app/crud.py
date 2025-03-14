@@ -8,9 +8,9 @@ from app.models import Item, ItemCreate, User, UserCreate, UserUpdate
 
 
 def create_user(*, session: Session, user_create: UserCreate) -> User:
-    db_obj = User.model_validate(
-        user_create, update={"hashed_password": get_password_hash(user_create.password)}
-    )
+    user_data = user_create.model_dump()
+    user_data["hashed_password"] = get_password_hash(user_create.password)
+    db_obj = User(**user_data)
     session.add(db_obj)
     session.commit()
     session.refresh(db_obj)
@@ -47,7 +47,9 @@ def authenticate(*, session: Session, email: str, password: str) -> User | None:
 
 
 def create_item(*, session: Session, item_in: ItemCreate, owner_id: uuid.UUID) -> Item:
-    db_item = Item.model_validate(item_in, update={"owner_id": owner_id})
+    item_data = item_in.model_dump()
+    item_data["owner_id"] = owner_id
+    db_item = Item(**item_data)
     session.add(db_item)
     session.commit()
     session.refresh(db_item)

@@ -26,11 +26,13 @@ import app.models.user
 import app.models.item
 import app.models.post
 import app.models.nome
-import app.models.category
-import app.models.pictogram
-import app.models.sequence
 import app.models.sync_log
 import app.models.auth
+import app.models.analyze_models
+import app.models.pecs
+import app.models.pecs_category
+import app.models.phrase
+import app.models.favorite
 
 target_metadata = SQLModel.metadata
 

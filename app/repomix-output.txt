@@ -1,0 +1,3594 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+================================================================
+File Summary
+================================================================
+
+Purpose:
+--------
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+
+File Format:
+------------
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Multiple file entries, each consisting of:
+  a. A separator line (================)
+  b. The file path (File: path/to/file)
+  c. Another separator line
+  d. The full contents of the file
+  e. A blank line
+
+Usage Guidelines:
+-----------------
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+
+Notes:
+------
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+
+Additional Info:
+----------------
+
+================================================================
+Directory Structure
+================================================================
+alembic/env.py
+alembic/README
+alembic/script.py.mako
+alembic/versions/1a31ce608336_add_cascade_delete_relationships.py
+alembic/versions/1ae1aa28e105_add_sequence_and_sync_log_tables.py
+alembic/versions/2f6ddeae325e_recreate_after_alembic_version_deletion.py
+alembic/versions/45a76dcabd8a_remove_foreign_key_from_nome_table.py
+alembic/versions/846b7c19009b_add_nome_table.py
+alembic/versions/8db1da7e3926_detect_model_changes.py
+alembic/versions/9c0a54914c78_add_max_length_for_string_varchar_.py
+alembic/versions/9d5f2a7e4b38_add_lang_field_to_pictogram.py
+alembic/versions/9e7bb07f125d_add_sequence_pictogram_positions_table.py
+alembic/versions/a9e643253934_add_pictogram_table.py
+alembic/versions/add_cascade_delete_to_pictogram_relations.py
+alembic/versions/cbd2cad966bc_make_display_order_optional_in_category_.py
+alembic/versions/d98dd8ec85a3_edit_replace_id_integers_in_all_models_.py
+alembic/versions/da3a23aaf58a_add_lang_field_to_pictogram.py
+alembic/versions/e2412789c190_initialize_models.py
+api/deps.py
+api/main.py
+api/routes/__init__.py
+api/routes/analyze.py
+api/routes/categories.py
+api/routes/items.py
+api/routes/login.py
+api/routes/nomi.py
+api/routes/pictograms.py
+api/routes/posts.py
+api/routes/private.py
+api/routes/sequences.py
+api/routes/test_route.py
+api/routes/users.py
+api/routes/utils.py
+backend_pre_start.py
+core/config.py
+core/db.py
+core/security.py
+crud.py
+data/de_pittogrammi.json
+data/en_pittogrammi.json
+data/es_pittogrammi.json
+data/fr_pittogrammi.json
+data/it_pittogrammi.json
+email-templates/build/new_account.html
+email-templates/build/reset_password.html
+email-templates/build/test_email.html
+email-templates/src/new_account.mjml
+email-templates/src/reset_password.mjml
+email-templates/src/test_email.mjml
+initial_data.py
+main.py
+models.py
+models/__init__.py
+models/auth.py
+models/category.py
+models/item.py
+models/nome.py
+models/pictogram.py
+models/post.py
+models/sequence.py
+models/sync_log.py
+models/user.py
+pittogrammi.json
+services/__init__.py
+services/dizionari/dizionario_de.txt
+services/dizionari/dizionario_en.txt
+services/dizionari/dizionario_es.txt
+services/dizionari/dizionario_fr.txt
+services/dizionari/dizionario_it.txt
+services/parola_simile copy.py
+services/parola_simile.py
+services/pictogram_search.py
+services/sentence_tokenizer.py
+services/to_singolare copy.py
+services/to_singolare.py
+tests_pre_start.py
+tests/api/routes/test_items.py
+tests/api/routes/test_login.py
+tests/api/routes/test_private.py
+tests/api/routes/test_users.py
+tests/conftest.py
+tests/crud/test_user.py
+tests/scripts/test_backend_pre_start.py
+tests/scripts/test_test_pre_start.py
+tests/utils/item.py
+tests/utils/user.py
+tests/utils/utils.py
+utils.py
+
+================================================================
+Files
+================================================================
+
+================
+File: alembic/env.py
+================
+import os
+from logging.config import fileConfig
+
+from alembic import context
+from sqlalchemy import engine_from_config, pool
+
+# this is the Alembic Config object, which provides
+# access to the values within the .ini file in use.
+config = context.config
+
+# Interpret the config file for Python logging.
+# This line sets up loggers basically.
+fileConfig(config.config_file_name)
+
+# add your model's MetaData object here
+# for 'autogenerate' support
+# from myapp import mymodel
+# target_metadata = mymodel.Base.metadata
+# target_metadata = None
+
+from app.models import SQLModel  # noqa
+from app.core.config import settings # noqa
+
+# Importa esplicitamente tutti i modelli per assicurarsi che siano registrati in SQLModel.metadata
+import app.models.user
+import app.models.item
+import app.models.post
+import app.models.nome
+import app.models.category
+import app.models.pictogram
+import app.models.sequence
+import app.models.sync_log
+import app.models.auth
+
+target_metadata = SQLModel.metadata
+
+# other values from the config, defined by the needs of env.py,
+# can be acquired:
+# my_important_option = config.get_main_option("my_important_option")
+# ... etc.
+
+
+def get_url():
+    return str(settings.SQLALCHEMY_DATABASE_URI)
+
+
+def run_migrations_offline():
+    """Run migrations in 'offline' mode.
+
+    This configures the context with just a URL
+    and not an Engine, though an Engine is acceptable
+    here as well.  By skipping the Engine creation
+    we don't even need a DBAPI to be available.
+
+    Calls to context.execute() here emit the given string to the
+    script output.
+
+    """
+    url = get_url()
+    context.configure(
+        url=url, target_metadata=target_metadata, literal_binds=True, compare_type=True
+    )
+
+    with context.begin_transaction():
+        context.run_migrations()
+
+
+def run_migrations_online():
+    """Run migrations in 'online' mode.
+
+    In this scenario we need to create an Engine
+    and associate a connection with the context.
+
+    """
+    configuration = config.get_section(config.config_ini_section)
+    configuration["sqlalchemy.url"] = get_url()
+    connectable = engine_from_config(
+        configuration,
+        prefix="sqlalchemy.",
+        poolclass=pool.NullPool,
+    )
+
+    with connectable.connect() as connection:
+        context.configure(
+            connection=connection, target_metadata=target_metadata, compare_type=True
+        )
+
+        with context.begin_transaction():
+            context.run_migrations()
+
+
+if context.is_offline_mode():
+    run_migrations_offline()
+else:
+    run_migrations_online()
+
+================
+File: alembic/README
+================
+Generic single-database configuration.
+
+================
+File: alembic/script.py.mako
+================
+"""${message}
+
+Revision ID: ${up_revision}
+Revises: ${down_revision | comma,n}
+Create Date: ${create_date}
+
+"""
+from alembic import op
+import sqlalchemy as sa
+import sqlmodel.sql.sqltypes
+${imports if imports else ""}
+
+# revision identifiers, used by Alembic.
+revision = ${repr(up_revision)}
+down_revision = ${repr(down_revision)}
+branch_labels = ${repr(branch_labels)}
+depends_on = ${repr(depends_on)}
+
+
+def upgrade():
+    ${upgrades if upgrades else "pass"}
+
+
+def downgrade():
+    ${downgrades if downgrades else "pass"}
+
+================
+File: alembic/versions/1a31ce608336_add_cascade_delete_relationships.py
+================
+"""Add cascade delete relationships
+
+Revision ID: 1a31ce608336
+Revises: d98dd8ec85a3
+Create Date: 2024-07-31 22:24:34.447891
+
+"""
+from alembic import op
+import sqlalchemy as sa
+import sqlmodel.sql.sqltypes
+
+
+# revision identifiers, used by Alembic.
+revision = '1a31ce608336'
+down_revision = 'd98dd8ec85a3'
+branch_labels = None
+depends_on = None
+
+
+def upgrade():
+    # ### commands auto generated by Alembic - please adjust! ###
+    op.alter_column('item', 'owner_id',
+               existing_type=sa.UUID(),
+               nullable=False)
+    op.drop_constraint('item_owner_id_fkey', 'item', type_='foreignkey')
+    op.create_foreign_key(None, 'item', 'user', ['owner_id'], ['id'], ondelete='CASCADE')
+    # ### end Alembic commands ###
+
+
+def downgrade():
+    # ### commands auto generated by Alembic - please adjust! ###
+    op.drop_constraint(None, 'item', type_='foreignkey')
+    op.create_foreign_key('item_owner_id_fkey', 'item', 'user', ['owner_id'], ['id'])
+    op.alter_column('item', 'owner_id',
+               existing_type=sa.UUID(),
+               nullable=True)
+    # ### end Alembic commands ###
+
+================
+File: alembic/versions/1ae1aa28e105_add_sequence_and_sync_log_tables.py
+================
+"""add_sequence_and_sync_log_tables
+
+Revision ID: 1ae1aa28e105
+Revises: 2f6ddeae325e
+Create Date: 2025-03-06 12:16:42.518661
+
+"""
+from alembic import op
+import sqlalchemy as sa
+import sqlmodel.sql.sqltypes
+from sqlalchemy.dialects import postgresql
+
+
+# revision identifiers, used by Alembic.
+revision = '1ae1aa28e105'
+down_revision = '2f6ddeae325e'
+branch_labels = None
+depends_on = None
+
+
+def upgrade():
+    # Crea la tabella categories
+    op.create_table('categories',
+        sa.Column('name', sqlmodel.sql.sqltypes.AutoString(length=100), nullable=False),
+        sa.Column('icon', sqlmodel.sql.sqltypes.AutoString(length=100), nullable=True),
+        sa.Column('color', sqlmodel.sql.sqltypes.AutoString(length=20), nullable=False),
+        sa.Column('display_order', sa.Integer(), nullable=False),
+        sa.Column('is_custom', sa.Boolean(), nullable=False),
+        sa.Column('is_visible', sa.Boolean(), nullable=False),
+        sa.Column('id', sa.Uuid(), nullable=False),
+        sa.Column('created_at', sa.DateTime(), server_default=sa.text('NOW()'), nullable=False),
+        sa.Column('updated_at', sa.DateTime(), server_default=sa.text('NOW()'), nullable=False),
+        sa.Column('created_by', sa.Uuid(), nullable=True),
+        sa.ForeignKeyConstraint(['created_by'], ['user.id'], ondelete='SET NULL'),
+        sa.PrimaryKeyConstraint('id')
+    )
+
+
+def downgrade():
+    # Elimina la tabella categories
+    op.drop_table('categories')
+
+================
+File: alembic/versions/2f6ddeae325e_recreate_after_alembic_version_deletion.py
+================
+"""recreate_after_alembic_version_deletion
+
+Revision ID: 2f6ddeae325e
+Revises: 45a76dcabd8a
+Create Date: 2025-03-06 12:14:20.998132
+
+"""
+from alembic import op
+import sqlalchemy as sa
+import sqlmodel.sql.sqltypes
+
+
+# revision identifiers, used by Alembic.
+revision = '2f6ddeae325e'
+down_revision = '45a76dcabd8a'
+branch_labels = None
+depends_on = None
+
+
+def upgrade():
+    pass
+
+
+def downgrade():
+    pass
+
+================
+File: alembic/versions/45a76dcabd8a_remove_foreign_key_from_nome_table.py
+================
+"""remove_foreign_key_from_nome_table
+
+Revision ID: 45a76dcabd8a
+Revises: 846b7c19009b
+Create Date: 2025-03-02 09:05:01.773185
+
+"""
+from alembic import op
+import sqlalchemy as sa
+import sqlmodel.sql.sqltypes
+
+
+# revision identifiers, used by Alembic.
+revision = '45a76dcabd8a'
+down_revision = '846b7c19009b'
+branch_labels = None
+depends_on = None
+
+
+def upgrade():
+    # ### commands auto generated by Alembic - please adjust! ###
+    # Drop the foreign key constraint
+    op.drop_constraint('nome_pictogram_id_fkey', 'nome', type_='foreignkey')
+    # ### end Alembic commands ###
+
+
+def downgrade():
+    # ### commands auto generated by Alembic - please adjust! ###
+    # Add the foreign key constraint back
+    op.create_foreign_key('nome_pictogram_id_fkey', 'nome', 'pictogram', ['pictogram_id'], ['id'])
+    # ### end Alembic commands ###
+
+================
+File: alembic/versions/846b7c19009b_add_nome_table.py
+================
+"""Add nome table
+
+Revision ID: 846b7c19009b
+Revises: a9e643253934
+Create Date: 2025-03-01 16:48:30.266287
+
+"""
+from alembic import op
+import sqlalchemy as sa
+import sqlmodel.sql.sqltypes
+
+
+# revision identifiers, used by Alembic.
+revision = '846b7c19009b'
+down_revision = 'a9e643253934'
+branch_labels = None
+depends_on = None
+
+
+def upgrade():
+    # ### commands auto generated by Alembic - please adjust! ###
+    op.create_table('nome',
+    sa.Column('pictogram_id', sa.Integer(), nullable=False),
+    sa.Column('name', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.Column('lang', sqlmodel.sql.sqltypes.AutoString(length=3), nullable=False),
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['pictogram_id'], ['pictogram.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_nome_lang'), 'nome', ['lang'], unique=False)
+    op.create_index(op.f('ix_nome_name'), 'nome', ['name'], unique=False)
+    op.create_index(op.f('ix_nome_pictogram_id'), 'nome', ['pictogram_id'], unique=False)
+    # ### end Alembic commands ###
+
+
+def downgrade():
+    # ### commands auto generated by Alembic - please adjust! ###
+    op.drop_index(op.f('ix_nome_pictogram_id'), table_name='nome')
+    op.drop_index(op.f('ix_nome_name'), table_name='nome')
+    op.drop_index(op.f('ix_nome_lang'), table_name='nome')
+    op.drop_table('nome')
+    # ### end Alembic commands ###
+
+================
+File: alembic/versions/8db1da7e3926_detect_model_changes.py
+================
+"""detect_model_changes
+
+Revision ID: 8db1da7e3926
+Revises: 1ae1aa28e105
+Create Date: 2025-03-06 12:19:26.982114
+
+"""
+from alembic import op
+import sqlalchemy as sa
+import sqlmodel.sql.sqltypes
+from sqlalchemy.dialects import postgresql
+
+# revision identifiers, used by Alembic.
+revision = '8db1da7e3926'
+down_revision = '1ae1aa28e105'
+branch_labels = None
+depends_on = None
+
+
+def upgrade():
+    # ### commands auto generated by Alembic - please adjust! ###
+    op.create_table('pictograms',
+    sa.Column('word', sqlmodel.sql.sqltypes.AutoString(length=100), nullable=False),
+    sa.Column('image_url', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.Column('is_custom', sa.Boolean(), nullable=False),
+    sa.Column('id', sa.Uuid(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), nullable=False),
+    sa.Column('created_by', sa.Uuid(), nullable=True),
+    sa.ForeignKeyConstraint(['created_by'], ['user.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('sequence_groups',
+    sa.Column('name', sqlmodel.sql.sqltypes.AutoString(length=100), nullable=False),
+    sa.Column('icon', sqlmodel.sql.sqltypes.AutoString(length=100), nullable=True),
+    sa.Column('color', sqlmodel.sql.sqltypes.AutoString(length=20), nullable=False),
+    sa.Column('display_order', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Uuid(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), nullable=False),
+    sa.Column('created_by', sa.Uuid(), nullable=True),
+    sa.ForeignKeyConstraint(['created_by'], ['user.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('sync_log',
+    sa.Column('entity_type', sqlmodel.sql.sqltypes.AutoString(length=20), nullable=False),
+    sa.Column('entity_id', sa.Uuid(), nullable=False),
+    sa.Column('action', sqlmodel.sql.sqltypes.AutoString(length=10), nullable=False),
+    sa.Column('user_id', sa.Uuid(), nullable=True),
+    sa.Column('id', sa.Uuid(), nullable=False),
+    sa.Column('timestamp', sa.DateTime(), nullable=False),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('pictogram_categories',
+    sa.Column('pictogram_id', sa.Uuid(), nullable=False),
+    sa.Column('category_id', sa.Uuid(), nullable=False),
+    sa.ForeignKeyConstraint(['category_id'], ['categories.id'], ),
+    sa.ForeignKeyConstraint(['pictogram_id'], ['pictograms.id'], ),
+    sa.PrimaryKeyConstraint('pictogram_id', 'category_id')
+    )
+    op.create_table('sequences',
+    sa.Column('name', sqlmodel.sql.sqltypes.AutoString(length=100), nullable=False),
+    sa.Column('display_order', sa.Integer(), nullable=False),
+    sa.Column('is_favorite', sa.Boolean(), nullable=False),
+    sa.Column('group_id', sa.Uuid(), nullable=True),
+    sa.Column('id', sa.Uuid(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), nullable=False),
+    sa.Column('created_by', sa.Uuid(), nullable=True),
+    sa.ForeignKeyConstraint(['created_by'], ['user.id'], ),
+    sa.ForeignKeyConstraint(['group_id'], ['sequence_groups.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('sequence_items',
+    sa.Column('sequence_id', sa.Uuid(), nullable=False),
+    sa.Column('pictogram_id', sa.Uuid(), nullable=False),
+    sa.Column('position', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Uuid(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=False),
+    sa.ForeignKeyConstraint(['pictogram_id'], ['pictograms.id'], ),
+    sa.ForeignKeyConstraint(['sequence_id'], ['sequences.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.drop_index('ix_pictogram_category', table_name='pictogram')
+    op.drop_index('ix_pictogram_language', table_name='pictogram')
+    op.drop_index('ix_pictogram_name', table_name='pictogram')
+    op.drop_table('pictogram')
+    op.alter_column('categories', 'created_at',
+               existing_type=postgresql.TIMESTAMP(timezone=True),
+               type_=sa.DateTime(),
+               existing_nullable=False,
+               existing_server_default=sa.text('now()'))
+    op.alter_column('categories', 'updated_at',
+               existing_type=postgresql.TIMESTAMP(timezone=True),
+               type_=sa.DateTime(),
+               existing_nullable=False,
+               existing_server_default=sa.text('now()'))
+    op.drop_constraint('categories_created_by_fkey', 'categories', type_='foreignkey')
+    op.create_foreign_key(None, 'categories', 'user', ['created_by'], ['id'])
+    # Aggiungiamo le colonne con un valore predefinito
+    op.add_column('user', sa.Column('created_at', sa.DateTime(), server_default=sa.text('NOW()'), nullable=False))
+    op.add_column('user', sa.Column('updated_at', sa.DateTime(), server_default=sa.text('NOW()'), nullable=False))
+    # ### end Alembic commands ###
+
+
+def downgrade():
+    # ### commands auto generated by Alembic - please adjust! ###
+    op.drop_column('user', 'updated_at')
+    op.drop_column('user', 'created_at')
+    op.drop_constraint(None, 'categories', type_='foreignkey')
+    op.create_foreign_key('categories_created_by_fkey', 'categories', 'user', ['created_by'], ['id'], ondelete='SET NULL')
+    op.alter_column('categories', 'updated_at',
+               existing_type=sa.DateTime(),
+               type_=postgresql.TIMESTAMP(timezone=True),
+               existing_nullable=False,
+               existing_server_default=sa.text('now()'))
+    op.alter_column('categories', 'created_at',
+               existing_type=sa.DateTime(),
+               type_=postgresql.TIMESTAMP(timezone=True),
+               existing_nullable=False,
+               existing_server_default=sa.text('now()'))
+    op.create_table('pictogram',
+    sa.Column('name', sa.VARCHAR(), autoincrement=False, nullable=False),
+    sa.Column('language', sa.VARCHAR(), autoincrement=False, nullable=False),
+    sa.Column('category', sa.VARCHAR(), autoincrement=False, nullable=False),
+    sa.Column('image_url', sa.VARCHAR(), autoincrement=False, nullable=False),
+    sa.Column('description', sa.VARCHAR(), autoincrement=False, nullable=True),
+    sa.Column('tags', postgresql.JSON(astext_type=sa.Text()), autoincrement=False, nullable=False),
+    sa.Column('id', sa.INTEGER(), autoincrement=True, nullable=False),
+    sa.PrimaryKeyConstraint('id', name='pictogram_pkey')
+    )
+    op.create_index('ix_pictogram_name', 'pictogram', ['name'], unique=False)
+    op.create_index('ix_pictogram_language', 'pictogram', ['language'], unique=False)
+    op.create_index('ix_pictogram_category', 'pictogram', ['category'], unique=False)
+    op.drop_table('sequence_items')
+    op.drop_table('sequences')
+    op.drop_table('pictogram_categories')
+    op.drop_table('sync_log')
+    op.drop_table('sequence_groups')
+    op.drop_table('pictograms')
+    # ### end Alembic commands ###
+
+================
+File: alembic/versions/9c0a54914c78_add_max_length_for_string_varchar_.py
+================
+"""Add max length for string(varchar) fields in User and Items models
+
+Revision ID: 9c0a54914c78
+Revises: e2412789c190
+Create Date: 2024-06-17 14:42:44.639457
+
+"""
+from alembic import op
+import sqlalchemy as sa
+import sqlmodel.sql.sqltypes
+
+
+# revision identifiers, used by Alembic.
+revision = '9c0a54914c78'
+down_revision = 'e2412789c190'
+branch_labels = None
+depends_on = None
+
+
+def upgrade():
+    # Adjust the length of the email field in the User table
+    op.alter_column('user', 'email',
+               existing_type=sa.String(),
+               type_=sa.String(length=255),
+               existing_nullable=False)
+
+    # Adjust the length of the full_name field in the User table
+    op.alter_column('user', 'full_name',
+               existing_type=sa.String(),
+               type_=sa.String(length=255),
+               existing_nullable=True)
+
+    # Adjust the length of the title field in the Item table
+    op.alter_column('item', 'title',
+               existing_type=sa.String(),
+               type_=sa.String(length=255),
+               existing_nullable=False)
+
+    # Adjust the length of the description field in the Item table
+    op.alter_column('item', 'description',
+               existing_type=sa.String(),
+               type_=sa.String(length=255),
+               existing_nullable=True)
+
+
+def downgrade():
+    # Revert the length of the email field in the User table
+    op.alter_column('user', 'email',
+               existing_type=sa.String(length=255),
+               type_=sa.String(),
+               existing_nullable=False)
+
+    # Revert the length of the full_name field in the User table
+    op.alter_column('user', 'full_name',
+               existing_type=sa.String(length=255),
+               type_=sa.String(),
+               existing_nullable=True)
+
+    # Revert the length of the title field in the Item table
+    op.alter_column('item', 'title',
+               existing_type=sa.String(length=255),
+               type_=sa.String(),
+               existing_nullable=False)
+
+    # Revert the length of the description field in the Item table
+    op.alter_column('item', 'description',
+               existing_type=sa.String(length=255),
+               type_=sa.String(),
+               existing_nullable=True)
+
+================
+File: alembic/versions/9d5f2a7e4b38_add_lang_field_to_pictogram.py
+================
+"""add_lang_field_to_pictogram
+
+Revision ID: 9d5f2a7e4b38
+Revises: 8db1da7e3926
+Create Date: 2025-03-06 13:47:00.000000
+
+"""
+from alembic import op
+import sqlalchemy as sa
+import sqlmodel.sql.sqltypes
+
+
+# revision identifiers, used by Alembic.
+revision = '9d5f2a7e4b38'
+down_revision = '8db1da7e3926'
+branch_labels = None
+depends_on = None
+
+
+def upgrade():
+    # ### commands auto generated by Alembic - please adjust! ###
+    op.add_column('pictograms', sa.Column('lang', sqlmodel.sql.sqltypes.AutoString(length=10), nullable=False, server_default='en'))
+    # ### end Alembic commands ###
+
+
+def downgrade():
+    # ### commands auto generated by Alembic - please adjust! ###
+    op.drop_column('pictograms', 'lang')
+    # ### end Alembic commands ###
+
+================
+File: alembic/versions/9e7bb07f125d_add_sequence_pictogram_positions_table.py
+================
+"""add_sequence_pictogram_positions_table
+
+Revision ID: 9e7bb07f125d
+Revises: add_cascade_pictogram_rel
+Create Date: 2025-03-07 17:20:44.337001
+
+"""
+from alembic import op
+import sqlalchemy as sa
+import sqlmodel.sql.sqltypes
+from sqlalchemy.dialects import postgresql
+
+# revision identifiers, used by Alembic.
+revision = '9e7bb07f125d'
+down_revision = 'add_cascade_pictogram_rel'
+branch_labels = None
+depends_on = None
+
+
+def upgrade():
+    # ### commands auto generated by Alembic - please adjust! ###
+    op.create_table('sequence_pictogram_positions',
+    sa.Column('sequence_id', sa.Uuid(), nullable=False),
+    sa.Column('pictogram_id', sa.Uuid(), nullable=False),
+    sa.Column('position', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['pictogram_id'], ['pictograms.id'], ),
+    sa.ForeignKeyConstraint(['sequence_id'], ['sequences.id'], ),
+    sa.PrimaryKeyConstraint('sequence_id', 'pictogram_id')
+    )
+    op.drop_table('sequence_items')
+    op.drop_constraint('pictogram_categories_pictogram_id_fkey', 'pictogram_categories', type_='foreignkey')
+    op.create_foreign_key(None, 'pictogram_categories', 'pictograms', ['pictogram_id'], ['id'])
+    # ### end Alembic commands ###
+
+
+def downgrade():
+    # ### commands auto generated by Alembic - please adjust! ###
+    op.drop_constraint(None, 'pictogram_categories', type_='foreignkey')
+    op.create_foreign_key('pictogram_categories_pictogram_id_fkey', 'pictogram_categories', 'pictograms', ['pictogram_id'], ['id'], ondelete='CASCADE')
+    op.create_table('sequence_items',
+    sa.Column('sequence_id', sa.UUID(), autoincrement=False, nullable=False),
+    sa.Column('pictogram_id', sa.UUID(), autoincrement=False, nullable=False),
+    sa.Column('position', sa.INTEGER(), autoincrement=False, nullable=False),
+    sa.Column('id', sa.UUID(), autoincrement=False, nullable=False),
+    sa.Column('created_at', postgresql.TIMESTAMP(), autoincrement=False, nullable=False),
+    sa.ForeignKeyConstraint(['pictogram_id'], ['pictograms.id'], name='sequence_items_pictogram_id_fkey', ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['sequence_id'], ['sequences.id'], name='sequence_items_sequence_id_fkey'),
+    sa.PrimaryKeyConstraint('id', name='sequence_items_pkey')
+    )
+    op.drop_table('sequence_pictogram_positions')
+    # ### end Alembic commands ###
+
+================
+File: alembic/versions/a9e643253934_add_pictogram_table.py
+================
+"""Add_pictogram_table
+
+Revision ID: a9e643253934
+Revises: 1a31ce608336
+Create Date: 2025-03-01 15:59:50.475290
+
+"""
+from alembic import op
+import sqlalchemy as sa
+import sqlmodel.sql.sqltypes
+
+
+# revision identifiers, used by Alembic.
+revision = 'a9e643253934'
+down_revision = '1a31ce608336'
+branch_labels = None
+depends_on = None
+
+
+def upgrade():
+    # ### commands auto generated by Alembic - please adjust! ###
+    op.create_table('pictogram',
+    sa.Column('name', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.Column('language', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.Column('category', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.Column('image_url', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.Column('description', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('tags', sa.JSON(), nullable=False),
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_pictogram_category'), 'pictogram', ['category'], unique=False)
+    op.create_index(op.f('ix_pictogram_language'), 'pictogram', ['language'], unique=False)
+    op.create_index(op.f('ix_pictogram_name'), 'pictogram', ['name'], unique=False)
+    op.create_table('post',
+    sa.Column('title', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.Column('description', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=False),
+    sa.Column('id', sa.Uuid(), nullable=False),
+    sa.Column('owner_id', sa.Uuid(), nullable=False),
+    sa.ForeignKeyConstraint(['owner_id'], ['user.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_post_id'), 'post', ['id'], unique=False)
+    op.create_index(op.f('ix_post_owner_id'), 'post', ['owner_id'], unique=False)
+    op.create_index(op.f('ix_post_title'), 'post', ['title'], unique=False)
+    op.drop_constraint('item_owner_id_fkey', 'item', type_='foreignkey')
+    op.create_foreign_key(None, 'item', 'user', ['owner_id'], ['id'])
+    # ### end Alembic commands ###
+
+
+def downgrade():
+    # ### commands auto generated by Alembic - please adjust! ###
+    op.drop_constraint(None, 'item', type_='foreignkey')
+    op.create_foreign_key('item_owner_id_fkey', 'item', 'user', ['owner_id'], ['id'], ondelete='CASCADE')
+    op.drop_index(op.f('ix_post_title'), table_name='post')
+    op.drop_index(op.f('ix_post_owner_id'), table_name='post')
+    op.drop_index(op.f('ix_post_id'), table_name='post')
+    op.drop_table('post')
+    op.drop_index(op.f('ix_pictogram_name'), table_name='pictogram')
+    op.drop_index(op.f('ix_pictogram_language'), table_name='pictogram')
+    op.drop_index(op.f('ix_pictogram_category'), table_name='pictogram')
+    op.drop_table('pictogram')
+    # ### end Alembic commands ###
+
+================
+File: alembic/versions/add_cascade_delete_to_pictogram_relations.py
+================
+"""Add cascade delete to pictogram relations
+
+Revision ID: add_cascade_delete_to_pictogram_relations
+Revises: cbd2cad966bc
+Create Date: 2025-03-06 15:09:00.000000
+
+"""
+from alembic import op
+import sqlalchemy as sa
+import sqlmodel.sql.sqltypes
+
+
+# revision identifiers, used by Alembic.
+revision = 'add_cascade_pictogram_rel'
+down_revision = 'cbd2cad966bc'
+branch_labels = None
+depends_on = None
+
+
+def upgrade():
+    # ### commands auto generated by Alembic - please adjust! ###
+    
+    # Rimuovi la chiave esterna esistente
+    op.drop_constraint('pictogram_categories_pictogram_id_fkey', 'pictogram_categories', type_='foreignkey')
+    
+    # Ricrea la chiave esterna con l'opzione ON DELETE CASCADE
+    op.create_foreign_key(
+        'pictogram_categories_pictogram_id_fkey', 
+        'pictogram_categories', 
+        'pictograms', 
+        ['pictogram_id'], 
+        ['id'], 
+        ondelete='CASCADE'
+    )
+    
+    # Fai lo stesso per sequence_items
+    op.drop_constraint('sequence_items_pictogram_id_fkey', 'sequence_items', type_='foreignkey')
+    op.create_foreign_key(
+        'sequence_items_pictogram_id_fkey', 
+        'sequence_items', 
+        'pictograms', 
+        ['pictogram_id'], 
+        ['id'], 
+        ondelete='CASCADE'
+    )
+    # ### end Alembic commands ###
+
+
+def downgrade():
+    # ### commands auto generated by Alembic - please adjust! ###
+    
+    # Ripristina le chiavi esterne originali senza l'opzione ON DELETE CASCADE
+    op.drop_constraint('pictogram_categories_pictogram_id_fkey', 'pictogram_categories', type_='foreignkey')
+    op.create_foreign_key(
+        'pictogram_categories_pictogram_id_fkey', 
+        'pictogram_categories', 
+        'pictograms', 
+        ['pictogram_id'], 
+        ['id']
+    )
+    
+    op.drop_constraint('sequence_items_pictogram_id_fkey', 'sequence_items', type_='foreignkey')
+    op.create_foreign_key(
+        'sequence_items_pictogram_id_fkey', 
+        'sequence_items', 
+        'pictograms', 
+        ['pictogram_id'], 
+        ['id']
+    )
+    # ### end Alembic commands ###
+
+================
+File: alembic/versions/cbd2cad966bc_make_display_order_optional_in_category_.py
+================
+"""make display_order optional in Category model
+
+Revision ID: cbd2cad966bc
+Revises: da3a23aaf58a
+Create Date: 2025-03-06 14:43:12.810171
+
+"""
+from alembic import op
+import sqlalchemy as sa
+import sqlmodel.sql.sqltypes
+
+
+# revision identifiers, used by Alembic.
+revision = 'cbd2cad966bc'
+down_revision = 'da3a23aaf58a'
+branch_labels = None
+depends_on = None
+
+
+def upgrade():
+    # ### commands auto generated by Alembic - please adjust! ###
+    op.alter_column('categories', 'display_order',
+               existing_type=sa.INTEGER(),
+               nullable=True)
+    # ### end Alembic commands ###
+
+
+def downgrade():
+    # ### commands auto generated by Alembic - please adjust! ###
+    op.alter_column('categories', 'display_order',
+               existing_type=sa.INTEGER(),
+               nullable=False)
+    # ### end Alembic commands ###
+
+================
+File: alembic/versions/d98dd8ec85a3_edit_replace_id_integers_in_all_models_.py
+================
+"""Edit replace id integers in all models to use UUID instead
+
+Revision ID: d98dd8ec85a3
+Revises: 9c0a54914c78
+Create Date: 2024-07-19 04:08:04.000976
+
+"""
+from alembic import op
+import sqlalchemy as sa
+import sqlmodel.sql.sqltypes
+from sqlalchemy.dialects import postgresql
+
+
+# revision identifiers, used by Alembic.
+revision = 'd98dd8ec85a3'
+down_revision = '9c0a54914c78'
+branch_labels = None
+depends_on = None
+
+
+def upgrade():
+    # Ensure uuid-ossp extension is available
+    op.execute('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"')
+
+    # Create a new UUID column with a default UUID value
+    op.add_column('user', sa.Column('new_id', postgresql.UUID(as_uuid=True), default=sa.text('uuid_generate_v4()')))
+    op.add_column('item', sa.Column('new_id', postgresql.UUID(as_uuid=True), default=sa.text('uuid_generate_v4()')))
+    op.add_column('item', sa.Column('new_owner_id', postgresql.UUID(as_uuid=True), nullable=True))
+
+    # Populate the new columns with UUIDs
+    op.execute('UPDATE "user" SET new_id = uuid_generate_v4()')
+    op.execute('UPDATE item SET new_id = uuid_generate_v4()')
+    op.execute('UPDATE item SET new_owner_id = (SELECT new_id FROM "user" WHERE "user".id = item.owner_id)')
+
+    # Set the new_id as not nullable
+    op.alter_column('user', 'new_id', nullable=False)
+    op.alter_column('item', 'new_id', nullable=False)
+
+    # Drop old columns and rename new columns
+    op.drop_constraint('item_owner_id_fkey', 'item', type_='foreignkey')
+    op.drop_column('item', 'owner_id')
+    op.alter_column('item', 'new_owner_id', new_column_name='owner_id')
+
+    op.drop_column('user', 'id')
+    op.alter_column('user', 'new_id', new_column_name='id')
+
+    op.drop_column('item', 'id')
+    op.alter_column('item', 'new_id', new_column_name='id')
+
+    # Create primary key constraint
+    op.create_primary_key('user_pkey', 'user', ['id'])
+    op.create_primary_key('item_pkey', 'item', ['id'])
+
+    # Recreate foreign key constraint
+    op.create_foreign_key('item_owner_id_fkey', 'item', 'user', ['owner_id'], ['id'])
+
+def downgrade():
+    # Reverse the upgrade process
+    op.add_column('user', sa.Column('old_id', sa.Integer, autoincrement=True))
+    op.add_column('item', sa.Column('old_id', sa.Integer, autoincrement=True))
+    op.add_column('item', sa.Column('old_owner_id', sa.Integer, nullable=True))
+
+    # Populate the old columns with default values
+    # Generate sequences for the integer IDs if not exist
+    op.execute('CREATE SEQUENCE IF NOT EXISTS user_id_seq AS INTEGER OWNED BY "user".old_id')
+    op.execute('CREATE SEQUENCE IF NOT EXISTS item_id_seq AS INTEGER OWNED BY item.old_id')
+
+    op.execute('SELECT setval(\'user_id_seq\', COALESCE((SELECT MAX(old_id) + 1 FROM "user"), 1), false)')
+    op.execute('SELECT setval(\'item_id_seq\', COALESCE((SELECT MAX(old_id) + 1 FROM item), 1), false)')
+
+    op.execute('UPDATE "user" SET old_id = nextval(\'user_id_seq\')')
+    op.execute('UPDATE item SET old_id = nextval(\'item_id_seq\'), old_owner_id = (SELECT old_id FROM "user" WHERE "user".id = item.owner_id)')
+
+    # Drop new columns and rename old columns back
+    op.drop_constraint('item_owner_id_fkey', 'item', type_='foreignkey')
+    op.drop_column('item', 'owner_id')
+    op.alter_column('item', 'old_owner_id', new_column_name='owner_id')
+
+    op.drop_column('user', 'id')
+    op.alter_column('user', 'old_id', new_column_name='id')
+
+    op.drop_column('item', 'id')
+    op.alter_column('item', 'old_id', new_column_name='id')
+
+    # Create primary key constraint
+    op.create_primary_key('user_pkey', 'user', ['id'])
+    op.create_primary_key('item_pkey', 'item', ['id'])
+
+    # Recreate foreign key constraint
+    op.create_foreign_key('item_owner_id_fkey', 'item', 'user', ['owner_id'], ['id'])
+
+================
+File: alembic/versions/da3a23aaf58a_add_lang_field_to_pictogram.py
+================
+"""add_lang_field_to_pictogram
+
+Revision ID: da3a23aaf58a
+Revises: 9d5f2a7e4b38
+Create Date: 2025-03-06 13:48:58.206678
+
+"""
+from alembic import op
+import sqlalchemy as sa
+import sqlmodel.sql.sqltypes
+
+
+# revision identifiers, used by Alembic.
+revision = 'da3a23aaf58a'
+down_revision = '9d5f2a7e4b38'
+branch_labels = None
+depends_on = None
+
+
+def upgrade():
+    # ### commands auto generated by Alembic - please adjust! ###
+    pass
+    # ### end Alembic commands ###
+
+
+def downgrade():
+    # ### commands auto generated by Alembic - please adjust! ###
+    pass
+    # ### end Alembic commands ###
+
+================
+File: alembic/versions/e2412789c190_initialize_models.py
+================
+"""Initialize models
+
+Revision ID: e2412789c190
+Revises:
+Create Date: 2023-11-24 22:55:43.195942
+
+"""
+import sqlalchemy as sa
+import sqlmodel.sql.sqltypes
+from alembic import op
+
+# revision identifiers, used by Alembic.
+revision = "e2412789c190"
+down_revision = None
+branch_labels = None
+depends_on = None
+
+
+def upgrade():
+    # ### commands auto generated by Alembic - please adjust! ###
+    op.create_table(
+        "user",
+        sa.Column("email", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("is_active", sa.Boolean(), nullable=False),
+        sa.Column("is_superuser", sa.Boolean(), nullable=False),
+        sa.Column("full_name", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column(
+            "hashed_password", sqlmodel.sql.sqltypes.AutoString(), nullable=False
+        ),
+        sa.PrimaryKeyConstraint("id"),
+    )
+    op.create_index(op.f("ix_user_email"), "user", ["email"], unique=True)
+    op.create_table(
+        "item",
+        sa.Column("description", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("title", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("owner_id", sa.Integer(), nullable=False),
+        sa.ForeignKeyConstraint(
+            ["owner_id"],
+            ["user.id"],
+        ),
+        sa.PrimaryKeyConstraint("id"),
+    )
+    # ### end Alembic commands ###
+
+
+def downgrade():
+    # ### commands auto generated by Alembic - please adjust! ###
+    op.drop_table("item")
+    op.drop_index(op.f("ix_user_email"), table_name="user")
+    op.drop_table("user")
+    # ### end Alembic commands ###
+
+================
+File: api/deps.py
+================
+from collections.abc import Generator
+from typing import Annotated
+
+import jwt
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from jwt.exceptions import InvalidTokenError
+from pydantic import ValidationError
+from sqlmodel import Session
+
+from app.core import security
+from app.core.config import settings
+from app.core.db import engine
+from app.models import TokenPayload, User
+
+reusable_oauth2 = OAuth2PasswordBearer(
+    tokenUrl=f"{settings.API_V1_STR}/login/access-token"
+)
+
+
+def get_db() -> Generator[Session, None, None]:
+    with Session(engine) as session:
+        yield session
+
+
+SessionDep = Annotated[Session, Depends(get_db)]
+TokenDep = Annotated[str, Depends(reusable_oauth2)]
+
+
+def get_current_user(session: SessionDep, token: TokenDep) -> User:
+    try:
+        payload = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
+        )
+        token_data = TokenPayload(**payload)
+    except (InvalidTokenError, ValidationError):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Could not validate credentials",
+        )
+    user = session.get(User, token_data.sub)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if not user.is_active:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    return user
+
+
+CurrentUser = Annotated[User, Depends(get_current_user)]
+
+
+def get_current_active_superuser(current_user: CurrentUser) -> User:
+    if not current_user.is_superuser:
+        raise HTTPException(
+            status_code=403, detail="The user doesn't have enough privileges"
+        )
+    return current_user
+
+================
+File: api/main.py
+================
+from fastapi import APIRouter
+
+from app.api.routes import items, login, private, users, utils, posts, pictograms, nomi, categories, sequences
+from app.core.config import settings
+from app.api.routes import analyze
+
+api_router = APIRouter()
+api_router.include_router(login.router)
+api_router.include_router(users.router)
+api_router.include_router(utils.router)
+api_router.include_router(items.router)
+api_router.include_router(posts.router) 
+api_router.include_router(analyze.router) 
+api_router.include_router(pictograms.router)
+api_router.include_router(categories.router)
+api_router.include_router(sequences.router, prefix="/sequences")
+api_router.include_router(nomi.router)
+
+if settings.ENVIRONMENT == "local":
+    api_router.include_router(private.router)
+
+================
+File: api/routes/__init__.py
+================
+from . import items, login, private, users, utils, posts, analyze, pictograms, nomi, categories, sequences
+
+================
+File: api/routes/analyze.py
+================
+from fastapi import APIRouter, HTTPException, Depends, Query
+from typing import List, Dict, Any, Optional
+import json
+
+from app.models.pictogram import PhraseRequest, WordRequest, PictogramResponse
+from app.services.pictogram_search import PictogramSearch, find_id_by_name, create_options_list
+from app.services.sentence_tokenizer import SentenceTokenizer
+from app.core.config import settings
+from app.services.to_singolare import to_singolare
+from app.services.parola_simile import trova_parole_simili
+
+router = APIRouter(prefix="/analyze", tags=["analyze"])
+
+# Load pictograms data
+with open(settings.PICTOGRAMS_FILE, 'r', encoding='utf-8') as file:
+    pictograms_data = json.load(file)
+
+# Initialize tokenizer service (doesn't depend on pictograms file)
+tokenizer = SentenceTokenizer(settings.API_KEY)
+
+# Function to get pictograms data based on language
+def get_pictograms_data(language: Optional[str] = None):
+    """
+    Load pictograms data for the specified language
+    
+    Args:
+        language: Language code (e.g., 'it', 'en', 'de')
+        
+    Returns:
+        Loaded pictograms data
+    """
+    pictograms_file = settings.get_pictograms_file(language)
+    
+    # Load pictograms data
+    with open(pictograms_file, 'r', encoding='utf-8') as file:
+        return json.load(file)
+
+# Function to get search service based on language
+def get_search_service(language: Optional[str] = None):
+    """
+    Get PictogramSearch service for the specified language
+    
+    Args:
+        language: Language code (e.g., 'it', 'en', 'de')
+        
+    Returns:
+        PictogramSearch service instance
+    """
+    pictograms_file = settings.get_pictograms_file(language)
+    return PictogramSearch(pictograms_file)
+
+@router.post("/process-phrase", response_model=List[PictogramResponse])
+async def process_phrase(
+    request: PhraseRequest,
+    language: Optional[str] = Query(
+        None, 
+        description="Language code for pictogram search", 
+        examples={"italian": {"value": "it"}, "english": {"value": "en"}, "german": {"value": "de"}, "spanish": {"value": "es"}, "french": {"value": "fr"}},
+    )
+):
+    """
+    Process a phrase and return matching pictograms
+    
+    This endpoint tokenizes a phrase and finds matching pictograms for each token.
+    You can specify a language to use language-specific pictogram data.
+    
+    Available languages:
+    - it: Italian (default)
+    - en: English
+    - de: German
+    - es: Spanish
+    - fr: French
+    
+    Args:
+        request: Phrase request object containing the phrase to process
+        language: Language code for pictogram search (e.g., 'it', 'en', 'de', 'es', 'fr')
+    """
+    try:
+        # Get language-specific pictograms data and search service
+        pictograms_data = get_pictograms_data(language)
+        search_service = get_search_service(language)
+        
+        sentence = request.phrase
+        
+        print(f"Processing phrase in language: {language or settings.DEFAULT_LANGUAGE}")
+        print(sentence)
+        actual_language = language or settings.DEFAULT_LANGUAGE
+        result = tokenizer.tokenize_sentence(sentence, actual_language)
+        print(result)
+        
+        # Process tokens and find pictogram IDs
+        pictograms = []
+        if result:
+            single_tokens = result.split(" ")
+            print(single_tokens)
+            for token in single_tokens:
+                token_clean = token.strip().replace('"', '')
+                pictogram_id = find_id_by_name(token_clean, pictograms_data)
+                
+                if pictogram_id:
+                    pictograms.append({
+                        "word": token_clean,
+                        "id": pictogram_id,
+                        "url": f"https://api.arasaac.org/v1/pictograms/{pictogram_id}?download=false"
+                    })
+                else:
+                    # Handle missing pictogram
+                    options_list = create_options_list(token_clean, search_service)
+                    options_str = ', '.join(options_list)
+                    
+                    print(result)
+                    
+                    response_text = tokenizer.find_missing_word(sentence, token_clean, options_str)
+                    
+                    # Clean up the response
+                    if response_text:
+                        response_text = response_text.replace('```json', '')
+                        response_text = response_text.replace('```', '')
+                        response_text = response_text.strip()
+                    else:
+                        pictograms.append({
+                            "word": token_clean,
+                            "error": "no response from tokenizer"
+                        })
+                        continue
+                    
+                    try:
+                        data = json.loads(response_text)
+                        found_word = data.get('found_word', '')
+                        
+                        pictogram_id = find_id_by_name(found_word, pictograms_data)
+                        if pictogram_id:
+                            pictograms.append({
+                                "word": token_clean,
+                                "id": pictogram_id,
+                                "url": f"https://api.arasaac.org/v1/pictograms/{pictogram_id}?download=false"
+                            })
+                        else:
+                            pictograms.append({
+                                "word": token_clean,
+                                "error": "not found"
+                            })
+                    except json.JSONDecodeError:
+                        pictograms.append({
+                            "word": token_clean,
+                            "error": "invalid response format"
+                        })
+        
+        return pictograms
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/get-options", response_model=List[PictogramResponse])
+async def get_options(
+    request: WordRequest,
+    language: Optional[str] = Query(
+        None, 
+        description="Language code for pictogram search", 
+        examples={"italian": {"value": "it"}, "english": {"value": "en"}, "german": {"value": "de"}, "spanish": {"value": "es"}, "french": {"value": "fr"}},
+    )
+):
+    """
+    Get pictogram options for a word
+    
+    This endpoint finds pictogram options for a given word.
+    You can specify a language to use language-specific pictogram data.
+    
+    Available languages:
+    - it: Italian (default)
+    - en: English
+    - de: German
+    - es: Spanish
+    - fr: French
+    
+    Args:
+        request: Word request object containing the word to find options for
+        language: Language code for pictogram search (e.g., 'it', 'en', 'de', 'es', 'fr')
+    """
+    try:
+        # Get language-specific pictograms data and search service
+        pictograms_data = get_pictograms_data(language)
+        search_service = get_search_service(language)
+        
+        word = request.word
+        
+        if not word:
+            raise HTTPException(status_code=400, detail="Word is required")
+        
+        pictograms = []
+        token_clean = word.strip().replace('"', '').lower()
+        token_clean = to_singolare(token_clean, language)
+        token_clean = trova_parole_simili(token_clean, language)
+
+        pictogram_id = find_id_by_name(token_clean, pictograms_data)
+
+        if pictogram_id:
+            pictograms.append({
+                "word": token_clean,
+                "id": pictogram_id,
+                "url": f"https://api.arasaac.org/v1/pictograms/{pictogram_id}?download=false"
+            })
+        else:
+            # Get options for the word
+            options = create_options_list(word, search_service)
+            options = options[:10]
+            
+            # Remove duplicates while preserving order
+            unique_options = list(dict.fromkeys(options))
+            
+            for item in unique_options:
+                pictogram_id = find_id_by_name(item, pictograms_data)
+                if pictogram_id:
+                    pictograms.append({
+                        "word": token_clean,
+                        "id": pictogram_id,
+                        "url": f"https://api.arasaac.org/v1/pictograms/{pictogram_id}?download=false"
+                    })
+        
+        return pictograms
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+================
+File: api/routes/categories.py
+================
+import uuid
+from typing import List, Optional
+from fastapi import APIRouter, HTTPException
+from sqlmodel import select, func
+
+from app.api.deps import SessionDep, CurrentUser
+from app.models import Category, CategoryCreate, CategoryUpdate, CategoryRead, Message
+
+router = APIRouter(prefix="/categories", tags=["categories"])
+
+
+@router.get("/", response_model=List[CategoryRead])
+def read_categories(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    skip: int = 0,
+    limit: int = 100,
+    is_custom: Optional[bool] = None,
+    is_visible: Optional[bool] = None,
+):
+    """
+    Retrieve categories with optional filtering.
+    """
+    query = select(Category)
+    
+    # Apply filters if provided
+    if is_custom is not None:
+        query = query.where(Category.is_custom == is_custom)
+    
+    if is_visible is not None:
+        query = query.where(Category.is_visible == is_visible)
+    
+    # Filter by user for custom categories
+    if not current_user.is_superuser and is_custom:
+        query = query.where(Category.created_by == current_user.id)
+    
+    # Order by display_order (handle None values)
+    query = query.order_by(Category.display_order.nulls_last())
+    
+    categories = session.exec(query.offset(skip).limit(limit)).all()
+    return categories
+
+
+@router.post("/", response_model=CategoryRead)
+def create_category(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    category_in: CategoryCreate,
+):
+    """
+    Create new category.
+    """
+    # Set created_by if not provided
+    if category_in.created_by is None:
+        category_in.created_by = current_user.id
+    
+    # Only superusers can create non-custom categories
+    if not category_in.is_custom and not current_user.is_superuser:
+        raise HTTPException(
+            status_code=403,
+            detail="Only superusers can create non-custom categories"
+        )
+    
+    # Create the category
+    category_data = category_in.model_dump()
+    
+    # If display_order is not provided, assign a default value
+    if category_data.get('display_order') is None:
+        # Get the maximum display_order value
+        max_order_result = session.exec(
+            select(func.max(Category.display_order))
+        ).one_or_none()
+        
+        # Set display_order to max + 1, or 1 if no categories exist
+        max_order = max_order_result if max_order_result is not None else 0
+        category_data['display_order'] = max_order + 1
+    
+    category = Category(**category_data)
+    session.add(category)
+    session.commit()
+    session.refresh(category)
+    return category
+
+
+@router.get("/{category_id}", response_model=CategoryRead)
+def read_category(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    category_id: uuid.UUID,
+):
+    """
+    Get category by ID.
+    """
+    category = session.get(Category, category_id)
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+    
+    # Check permissions for custom categories
+    if category.is_custom and not current_user.is_superuser and category.created_by != current_user.id:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    
+    return category
+
+
+@router.put("/{category_id}", response_model=CategoryRead)
+def update_category(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    category_id: uuid.UUID,
+    category_in: CategoryUpdate,
+):
+    """
+    Update a category.
+    """
+    category = session.get(Category, category_id)
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+    
+    # Check permissions
+    if not current_user.is_superuser and (category.is_custom and category.created_by != current_user.id):
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    
+    # Update category attributes
+    update_data = category_in.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(category, key, value)
+    
+    category.updated_at = func.now()
+    session.add(category)
+    session.commit()
+    session.refresh(category)
+    return category
+
+
+@router.delete("/{category_id}", response_model=Message)
+def delete_category(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    category_id: uuid.UUID,
+):
+    """
+    Delete a category.
+    """
+    category = session.get(Category, category_id)
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+    
+    # Check permissions
+    if not current_user.is_superuser and (category.is_custom and category.created_by != current_user.id):
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    
+    # Delete the category (relationships will be deleted automatically due to cascade)
+    session.delete(category)
+    session.commit()
+    return Message(message="Category deleted successfully")
+
+================
+File: api/routes/items.py
+================
+import uuid
+from typing import Any
+
+from fastapi import APIRouter, HTTPException
+from sqlmodel import func, select
+
+from app.api.deps import CurrentUser, SessionDep
+from app.models import Item, ItemCreate, ItemPublic, ItemsPublic, ItemUpdate, Message
+
+router = APIRouter(prefix="/items", tags=["items"])
+
+
+@router.get("/", response_model=ItemsPublic)
+def read_items(
+    session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100
+) -> Any:
+    """
+    Retrieve items.
+    """
+
+    if current_user.is_superuser:
+        count_statement = select(func.count()).select_from(Item)
+        count = session.exec(count_statement).one()
+        statement = select(Item).offset(skip).limit(limit)
+        items = session.exec(statement).all()
+    else:
+        count_statement = (
+            select(func.count())
+            .select_from(Item)
+            .where(Item.owner_id == current_user.id)
+        )
+        count = session.exec(count_statement).one()
+        statement = (
+            select(Item)
+            .where(Item.owner_id == current_user.id)
+            .offset(skip)
+            .limit(limit)
+        )
+        items = session.exec(statement).all()
+
+    return ItemsPublic(data=items, count=count)
+
+
+@router.get("/{id}", response_model=ItemPublic)
+def read_item(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:
+    """
+    Get item by ID.
+    """
+    item = session.get(Item, id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    if not current_user.is_superuser and (item.owner_id != current_user.id):
+        raise HTTPException(status_code=400, detail="Not enough permissions")
+    return item
+
+
+@router.post("/", response_model=ItemPublic)
+def create_item(
+    *, session: SessionDep, current_user: CurrentUser, item_in: ItemCreate
+) -> Any:
+    """
+    Create new item.
+    """
+    item_data = item_in.model_dump()
+    item_data["owner_id"] = current_user.id
+    item = Item(**item_data)
+    session.add(item)
+    session.commit()
+    session.refresh(item)
+    return item
+
+
+@router.put("/{id}", response_model=ItemPublic)
+def update_item(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    id: uuid.UUID,
+    item_in: ItemUpdate,
+) -> Any:
+    """
+    Update an item.
+    """
+    item = session.get(Item, id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    if not current_user.is_superuser and (item.owner_id != current_user.id):
+        raise HTTPException(status_code=400, detail="Not enough permissions")
+    update_dict = item_in.model_dump(exclude_unset=True)
+    item.sqlmodel_update(update_dict)
+    session.add(item)
+    session.commit()
+    session.refresh(item)
+    return item
+
+
+@router.delete("/{id}")
+def delete_item(
+    session: SessionDep, current_user: CurrentUser, id: uuid.UUID
+) -> Message:
+    """
+    Delete an item.
+    """
+    item = session.get(Item, id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    if not current_user.is_superuser and (item.owner_id != current_user.id):
+        raise HTTPException(status_code=400, detail="Not enough permissions")
+    session.delete(item)
+    session.commit()
+    return Message(message="Item deleted successfully")
+
+================
+File: api/routes/login.py
+================
+from datetime import timedelta
+from typing import Annotated, Any
+
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import HTMLResponse
+from fastapi.security import OAuth2PasswordRequestForm
+
+from app import crud
+from app.api.deps import CurrentUser, SessionDep, get_current_active_superuser
+from app.core import security
+from app.core.config import settings
+from app.core.security import get_password_hash
+from app.models import Message, NewPassword, Token, UserPublic
+from app.utils import (
+    generate_password_reset_token,
+    generate_reset_password_email,
+    send_email,
+    verify_password_reset_token,
+)
+
+router = APIRouter(tags=["login"])
+
+
+@router.post("/login/access-token")
+def login_access_token(
+    session: SessionDep, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
+) -> Token:
+    """
+    OAuth2 compatible token login, get an access token for future requests
+    """
+    user = crud.authenticate(
+        session=session, email=form_data.username, password=form_data.password
+    )
+    if not user:
+        raise HTTPException(status_code=400, detail="Incorrect email or password")
+    elif not user.is_active:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    return Token(
+        access_token=security.create_access_token(
+            user.id, expires_delta=access_token_expires
+        )
+    )
+
+
+@router.post("/login/test-token", response_model=UserPublic)
+def test_token(current_user: CurrentUser) -> Any:
+    """
+    Test access token
+    """
+    return current_user
+
+
+@router.post("/password-recovery/{email}")
+def recover_password(email: str, session: SessionDep) -> Message:
+    """
+    Password Recovery
+    """
+    user = crud.get_user_by_email(session=session, email=email)
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="The user with this email does not exist in the system.",
+        )
+    password_reset_token = generate_password_reset_token(email=email)
+    email_data = generate_reset_password_email(
+        email_to=user.email, email=email, token=password_reset_token
+    )
+    send_email(
+        email_to=user.email,
+        subject=email_data.subject,
+        html_content=email_data.html_content,
+    )
+    return Message(message="Password recovery email sent")
+
+
+@router.post("/reset-password/")
+def reset_password(session: SessionDep, body: NewPassword) -> Message:
+    """
+    Reset password
+    """
+    email = verify_password_reset_token(token=body.token)
+    if not email:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    user = crud.get_user_by_email(session=session, email=email)
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="The user with this email does not exist in the system.",
+        )
+    elif not user.is_active:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    hashed_password = get_password_hash(password=body.new_password)
+    user.hashed_password = hashed_password
+    session.add(user)
+    session.commit()
+    return Message(message="Password updated successfully")
+
+
+@router.post(
+    "/password-recovery-html-content/{email}",
+    dependencies=[Depends(get_current_active_superuser)],
+    response_class=HTMLResponse,
+)
+def recover_password_html_content(email: str, session: SessionDep) -> Any:
+    """
+    HTML Content for Password Recovery
+    """
+    user = crud.get_user_by_email(session=session, email=email)
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="The user with this username does not exist in the system.",
+        )
+    password_reset_token = generate_password_reset_token(email=email)
+    email_data = generate_reset_password_email(
+        email_to=user.email, email=email, token=password_reset_token
+    )
+
+    return HTMLResponse(
+        content=email_data.html_content, headers={"subject:": email_data.subject}
+    )
+
+================
+File: api/routes/nomi.py
+================
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlmodel import Session, select
+
+from app.api.deps import get_db, get_current_active_superuser, SessionDep, CurrentUser
+from app.models.nome import Nome, NomeCreate, NomeUpdate
+from app.models.user import User
+from app.models.pictogram import Pictogram
+
+router = APIRouter(prefix="/nomi", tags=["nomi"])
+
+
+@router.get("/", response_model=List[Nome])
+def read_nomi(
+    *,
+    db: SessionDep,
+    skip: int = 0,
+    limit: int = 100,
+    lang: Optional[str] = None,
+    pictogram_id: Optional[int] = None,
+):
+    """
+    Retrieve nomi (names) with optional filtering.
+    """
+    query = select(Nome)
+    
+    # Apply filters if provided
+    if lang:
+        query = query.where(Nome.lang == lang)
+    if pictogram_id:
+        query = query.where(Nome.pictogram_id == pictogram_id)
+    
+    nomi = db.exec(query.offset(skip).limit(limit)).all()
+    return nomi
+
+
+@router.post("/", response_model=Nome)
+def create_nome(
+    *,
+    db: SessionDep,
+    nome_in: NomeCreate,
+    current_user: User = Depends(get_current_active_superuser),
+):
+    """
+    Create new nome (name) with the specified pictogram_id.
+    No validation is performed to check if the pictogram exists.
+    """
+    # Create the nome directly
+    nome = Nome(**nome_in.model_dump())
+    db.add(nome)
+    db.commit()
+    db.refresh(nome)
+    return nome
+
+
+@router.get("/{nome_id}", response_model=Nome)
+def read_nome(
+    *,
+    db: SessionDep,
+    nome_id: int,
+):
+    """
+    Get nome by ID.
+    """
+    nome = db.get(Nome, nome_id)
+    if not nome:
+        raise HTTPException(status_code=404, detail="Nome not found")
+    return nome
+
+
+@router.put("/{nome_id}", response_model=Nome)
+def update_nome(
+    *,
+    db: SessionDep,
+    nome_id: int,
+    nome_in: NomeUpdate,
+    current_user: User = Depends(get_current_active_superuser),
+):
+    """
+    Update a nome.
+    """
+    nome = db.get(Nome, nome_id)
+    if not nome:
+        raise HTTPException(status_code=404, detail="Nome not found")
+    
+    # Update nome attributes
+    nome_data = nome_in.model_dump(exclude_unset=True)
+    for key, value in nome_data.items():
+        setattr(nome, key, value)
+    
+    db.add(nome)
+    db.commit()
+    db.refresh(nome)
+    return nome
+
+
+@router.delete("/{nome_id}", response_model=Nome)
+def delete_nome(
+    *,
+    db: SessionDep,
+    nome_id: int,
+    current_user: User = Depends(get_current_active_superuser),
+):
+    """
+    Delete a nome.
+    """
+    nome = db.get(Nome, nome_id)
+    if not nome:
+        raise HTTPException(status_code=404, detail="Nome not found")
+    
+    db.delete(nome)
+    db.commit()
+    return nome
+
+
+@router.get("/pictogram/{pictogram_id}", response_model=List[Nome])
+def read_nomi_by_pictogram(
+    *,
+    db: SessionDep,
+    pictogram_id: int,
+    lang: Optional[str] = None,
+):
+    """
+    Get all nomi for a specific pictogram_id, optionally filtered by language.
+    """
+    query = select(Nome).where(Nome.pictogram_id == pictogram_id)
+    
+    if lang:
+        query = query.where(Nome.lang == lang)
+    
+    nomi = db.exec(query).all()
+    return nomi
+
+
+@router.get("/search/", response_model=List[Nome])
+def search_nomi(
+    *,
+    db: SessionDep,
+    q: str = Query(..., description="Search query"),
+    lang: Optional[str] = None,
+):
+    """
+    Search nomi by name.
+    """
+    query = select(Nome).where(Nome.name.contains(q))
+    
+    if lang:
+        query = query.where(Nome.lang == lang)
+    
+    nomi = db.exec(query).all()
+    return nomi
+
+================
+File: api/routes/pictograms.py
+================
+import uuid
+from typing import List, Optional, Dict, Any
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlmodel import Session, select, func
+import httpx
+
+from app.api.deps import SessionDep, CurrentUser
+from app.models import Pictogram, PictogramCreate, PictogramUpdate, PictogramRead, PictogramCategory, Category, Message
+from app.models.pictogram import WordRequest, PictogramResponse
+
+router = APIRouter(prefix="/pictograms", tags=["pictograms"])
+
+@router.post("/image-options/", response_model=List[PictogramResponse])
+async def get_image_options(
+    *,
+    word: str = Query(..., description="Word to search images for"),
+    language: str = Query("it", description="Language code for pictogram search"),
+    current_user: CurrentUser,
+):
+    """
+    Get image options for a word when adding a pictogram.
+    
+    This endpoint calls the analyze/get-options endpoint to retrieve
+    a list of possible images for the given word, allowing the user
+    to choose which one to use when creating a pictogram.
+    """
+    try:
+        # Call the analyze/get-options endpoint
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"http://localhost:5000/api/v1/analyze/get-options?language={language}",
+                json={"word": word},
+                headers={"accept": "application/json", "Content-Type": "application/json"}
+            )
+            
+            if response.status_code != 200:
+                raise HTTPException(
+                    status_code=response.status_code,
+                    detail=f"Error getting image options: {response.text}"
+                )
+            
+            return response.json()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error getting image options: {str(e)}")
+
+
+@router.get("/", response_model=List[PictogramRead])
+def read_pictograms(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    skip: int = 0,
+    limit: int = 100,
+    is_custom: Optional[bool] = None,
+    category_id: Optional[uuid.UUID] = None,
+    word: Optional[str] = None,
+):
+    """
+    Retrieve pictograms with optional filtering.
+    """
+    query = select(Pictogram)
+    
+    # Apply filters if provided
+    if is_custom is not None:
+        query = query.where(Pictogram.is_custom == is_custom)
+    
+    if word:
+        query = query.where(Pictogram.word.contains(word))
+    
+    if category_id:
+        query = (
+            query
+            .join(PictogramCategory, Pictogram.id == PictogramCategory.pictogram_id)
+            .where(PictogramCategory.category_id == category_id)
+        )
+    
+    # Filter by user for custom pictograms
+    if not current_user.is_superuser and is_custom:
+        query = query.where(Pictogram.created_by == current_user.id)
+    
+    pictograms = session.exec(query.offset(skip).limit(limit)).all()
+    return pictograms
+
+
+@router.post("/", response_model=PictogramRead)
+def create_pictogram(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    pictogram_in: PictogramCreate,
+):
+    """
+    Create new pictogram.
+    """
+    # Create the pictogram
+    pictogram_data = pictogram_in.model_dump(exclude={"category_ids"})
+    pictogram_data["created_by"] = current_user.id
+    pictogram = Pictogram(**pictogram_data)
+    session.add(pictogram)
+    session.commit()
+    session.refresh(pictogram)
+    
+    # Add categories if provided
+    if pictogram_in.category_ids:
+        for category_id in pictogram_in.category_ids:
+            # Verify category exists
+            category = session.get(Category, category_id)
+            if not category:
+                session.delete(pictogram)
+                session.commit()
+                raise HTTPException(status_code=404, detail=f"Category with ID {category_id} not found")
+            
+            # Create relationship
+            pictogram_category = PictogramCategory(
+                pictogram_id=pictogram.id,
+                category_id=category_id
+            )
+            session.add(pictogram_category)
+        
+        session.commit()
+        session.refresh(pictogram)
+    
+    return pictogram
+
+
+@router.get("/{pictogram_id}", response_model=PictogramRead)
+def read_pictogram(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    pictogram_id: uuid.UUID,
+):
+    """
+    Get pictogram by ID.
+    """
+    pictogram = session.get(Pictogram, pictogram_id)
+    if not pictogram:
+        raise HTTPException(status_code=404, detail="Pictogram not found")
+    
+    # Check permissions for custom pictograms
+    if pictogram.is_custom and not current_user.is_superuser and pictogram.created_by != current_user.id:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    
+    return pictogram
+
+
+@router.put("/{pictogram_id}", response_model=PictogramRead)
+def update_pictogram(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    pictogram_id: uuid.UUID,
+    pictogram_in: PictogramUpdate,
+):
+    """
+    Update a pictogram.
+    """
+    pictogram = session.get(Pictogram, pictogram_id)
+    if not pictogram:
+        raise HTTPException(status_code=404, detail="Pictogram not found")
+    
+    # Check permissions
+    if not current_user.is_superuser and (pictogram.is_custom and pictogram.created_by != current_user.id):
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    
+    # Update pictogram attributes
+    update_data = pictogram_in.model_dump(exclude_unset=True, exclude={"category_ids"})
+    for key, value in update_data.items():
+        setattr(pictogram, key, value)
+    
+    # Update categories if provided
+    if pictogram_in.category_ids is not None:
+        # Remove existing category relationships
+        existing_relations = session.exec(
+            select(PictogramCategory).where(PictogramCategory.pictogram_id == pictogram_id)
+        ).all()
+        for relation in existing_relations:
+            session.delete(relation)
+        
+        # Add new category relationships
+        for category_id in pictogram_in.category_ids:
+            # Verify category exists
+            category = session.get(Category, category_id)
+            if not category:
+                raise HTTPException(status_code=404, detail=f"Category with ID {category_id} not found")
+            
+            # Create relationship
+            pictogram_category = PictogramCategory(
+                pictogram_id=pictogram.id,
+                category_id=category_id
+            )
+            session.add(pictogram_category)
+    
+    pictogram.updated_at = func.now()
+    session.add(pictogram)
+    session.commit()
+    session.refresh(pictogram)
+    return pictogram
+
+
+@router.delete("/{pictogram_id}", response_model=Message)
+def delete_pictogram(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    pictogram_id: uuid.UUID,
+):
+    """
+    Delete a pictogram.
+    """
+    pictogram = session.get(Pictogram, pictogram_id)
+    if not pictogram:
+        raise HTTPException(status_code=404, detail="Pictogram not found")
+    
+    # Check permissions
+    if not current_user.is_superuser and (pictogram.is_custom and pictogram.created_by != current_user.id):
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    
+    # Delete the pictogram (relationships will be deleted automatically due to cascade)
+    session.delete(pictogram)
+    session.commit()
+    return Message(message="Pictogram deleted successfully")
+
+
+@router.get("/search/", response_model=List[PictogramRead])
+def search_pictograms(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    q: str = Query(..., description="Search query"),
+):
+    """
+    Search pictograms by word.
+    """
+    query = select(Pictogram).where(Pictogram.word.contains(q))
+    
+    # Filter by user for custom pictograms if not superuser
+    if not current_user.is_superuser:
+        query = query.where((Pictogram.is_custom == False) | (Pictogram.created_by == current_user.id))
+    
+    pictograms = session.exec(query).all()
+    return pictograms
+
+================
+File: api/routes/posts.py
+================
+import uuid
+from typing import Any
+
+from fastapi import APIRouter, HTTPException
+from sqlmodel import func, select
+
+from app.api.deps import CurrentUser, SessionDep
+from app.models import Post, PostCreate, PostPublic, PostsPublic, PostUpdate, Message
+
+router = APIRouter(prefix="/posts", tags=["posts"])
+
+
+@router.get("/", response_model=PostsPublic)
+def read_posts(
+    session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100
+) -> Any:
+    """
+    Retrieve posts.
+    """
+    # If user is superuser, can see all posts
+    if current_user.is_superuser:
+        count_statement = select(func.count()).select_from(Post)
+        count = session.exec(count_statement).one()
+        statement = select(Post).offset(skip).limit(limit)
+        posts = session.exec(statement).all()
+    else:
+        # Otherwise, can only see own posts
+        count_statement = (
+            select(func.count())
+            .select_from(Post)
+            .where(Post.owner_id == current_user.id)
+        )
+        count = session.exec(count_statement).one()
+        statement = (
+            select(Post)
+            .where(Post.owner_id == current_user.id)
+            .offset(skip)
+            .limit(limit)
+        )
+        posts = session.exec(statement).all()
+
+    return PostsPublic(data=posts, count=count)
+
+
+@router.get("/hello-world", response_model=Message)
+def hello_world(session: SessionDep) -> Message:
+    """
+    Simple hello world endpoint for testing.
+    This endpoint does not require authentication but uses a database session.
+    """
+    return Message(message="Hello World11!")
+
+
+@router.get("/{id}", response_model=PostPublic)
+def read_post(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:
+    """
+    Get post by ID.
+    """
+    post = session.get(Post, id)
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    if not current_user.is_superuser and (post.owner_id != current_user.id):
+        raise HTTPException(status_code=400, detail="Not enough permissions")
+    return post
+
+
+@router.post("/", response_model=PostPublic)
+def create_post(
+    *, session: SessionDep, current_user: CurrentUser, post_in: PostCreate
+) -> Any:
+    """
+    Create new post.
+    """
+    post_data = post_in.model_dump()
+    post_data["owner_id"] = current_user.id
+    post = Post(**post_data)
+    session.add(post)
+    session.commit()
+    session.refresh(post)
+    return post
+
+
+@router.put("/{id}", response_model=PostPublic)
+def update_post(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    id: uuid.UUID,
+    post_in: PostUpdate,
+) -> Any:
+    """
+    Update a post.
+    """
+    post = session.get(Post, id)
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    if not current_user.is_superuser and (post.owner_id != current_user.id):
+        raise HTTPException(status_code=400, detail="Not enough permissions")
+    update_dict = post_in.model_dump(exclude_unset=True)
+    post.sqlmodel_update(update_dict)
+    session.add(post)
+    session.commit()
+    session.refresh(post)
+    return post
+
+
+@router.delete("/{id}")
+def delete_post(
+    session: SessionDep, current_user: CurrentUser, id: uuid.UUID
+) -> Message:
+    """
+    Delete a post.
+    """
+    post = session.get(Post, id)
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    if not current_user.is_superuser and (post.owner_id != current_user.id):
+        raise HTTPException(status_code=400, detail="Not enough permissions")
+    session.delete(post)
+    session.commit()
+    return Message(message="Post deleted successfully")
+
+================
+File: api/routes/private.py
+================
+from typing import Any
+
+from fastapi import APIRouter
+from pydantic import BaseModel
+
+from app.api.deps import SessionDep
+from app.core.security import get_password_hash
+from app.models import (
+    User,
+    UserPublic,
+)
+
+router = APIRouter(tags=["private"], prefix="/private")
+
+
+class PrivateUserCreate(BaseModel):
+    email: str
+    password: str
+    full_name: str
+    is_verified: bool = False
+
+
+@router.post("/users/", response_model=UserPublic)
+def create_user(user_in: PrivateUserCreate, session: SessionDep) -> Any:
+    """
+    Create a new user.
+    """
+
+    user = User(
+        email=user_in.email,
+        full_name=user_in.full_name,
+        hashed_password=get_password_hash(user_in.password),
+    )
+
+    session.add(user)
+    session.commit()
+
+    return user
+
+================
+File: api/routes/sequences.py
+================
+import uuid
+from typing import List, Optional, Dict, Any
+from fastapi import APIRouter, HTTPException
+from sqlmodel import select, func
+from datetime import datetime, timedelta
+
+from app.api.deps import SessionDep, CurrentUser
+from app.models import (
+    SequenceGroup, SequenceGroupCreate, SequenceGroupUpdate, SequenceGroupRead,
+    Sequence, SequenceCreate, SequenceUpdate, SequenceRead, SequenceReadPictogram,
+    SequencePictogramPosition, PictogramInfo,
+    Pictogram, Message
+)
+
+router = APIRouter(tags=["sequences"])
+
+# SequenceGroup routes
+@router.get("/groups/", response_model=List[SequenceGroupRead])
+def read_sequence_groups(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    skip: int = 0,
+    limit: int = 100,
+):
+    """
+    Retrieve sequence groups.
+    """
+    query = select(SequenceGroup)
+    
+    # Filter by user if not superuser
+    if not current_user.is_superuser:
+        query = query.where(SequenceGroup.created_by == current_user.id)
+    
+    # Order by display_order
+    query = query.order_by(SequenceGroup.display_order)
+    
+    groups = session.exec(query.offset(skip).limit(limit)).all()
+    return groups
+
+
+@router.post("/groups/", response_model=SequenceGroupRead)
+def create_sequence_group(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    group_in: SequenceGroupCreate,
+):
+    """
+    Create new sequence group.
+    """
+    # Set created_by if not provided
+    if group_in.created_by is None:
+        group_in.created_by = current_user.id
+    
+    # Create the group
+    group = SequenceGroup(**group_in.model_dump())
+    session.add(group)
+    session.commit()
+    session.refresh(group)
+    return group
+
+
+@router.get("/groups/{group_id}", response_model=SequenceGroupRead)
+def read_sequence_group(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    group_id: uuid.UUID,
+):
+    """
+    Get sequence group by ID.
+    """
+    group = session.get(SequenceGroup, group_id)
+    if not group:
+        raise HTTPException(status_code=404, detail="Sequence group not found")
+    
+    # Check permissions
+    if not current_user.is_superuser and group.created_by != current_user.id:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    
+    return group
+
+
+@router.put("/groups/{group_id}", response_model=SequenceGroupRead)
+def update_sequence_group(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    group_id: uuid.UUID,
+    group_in: SequenceGroupUpdate,
+):
+    """
+    Update a sequence group.
+    """
+    group = session.get(SequenceGroup, group_id)
+    if not group:
+        raise HTTPException(status_code=404, detail="Sequence group not found")
+    
+    # Check permissions
+    if not current_user.is_superuser and group.created_by != current_user.id:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    
+    # Update group attributes
+    update_data = group_in.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(group, key, value)
+    
+    group.updated_at = func.now()
+    session.add(group)
+    session.commit()
+    session.refresh(group)
+    return group
+
+
+@router.delete("/groups/{group_id}", response_model=Message)
+def delete_sequence_group(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    group_id: uuid.UUID,
+):
+    """
+    Delete a sequence group.
+    """
+    group = session.get(SequenceGroup, group_id)
+    if not group:
+        raise HTTPException(status_code=404, detail="Sequence group not found")
+    
+    # Check permissions
+    if not current_user.is_superuser and group.created_by != current_user.id:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    
+    # Delete the group (sequences will be deleted automatically due to cascade)
+    session.delete(group)
+    session.commit()
+    return Message(message="Sequence group deleted successfully")
+
+
+# Sequence routes
+@router.get("/", response_model=List[SequenceRead])
+def read_sequences(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    skip: int = 0,
+    limit: int = 100,
+    group_id: Optional[str] = None,
+    is_favorite: Optional[bool] = None,
+):
+    """
+    Retrieve sequences with optional filtering.
+    """
+    query = select(Sequence)
+    
+    # Apply filters if provided
+    if group_id:
+        try:
+            group_uuid = uuid.UUID(group_id)
+            query = query.where(Sequence.group_id == group_uuid)
+        except ValueError:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Invalid UUID format for group_id: {group_id}"
+            )
+    
+    if is_favorite is not None:
+        query = query.where(Sequence.is_favorite == is_favorite)
+    
+    # Filter by user if not superuser
+    if not current_user.is_superuser:
+        query = query.where(Sequence.created_by == current_user.id)
+    
+    # Order by display_order
+    query = query.order_by(Sequence.display_order)
+    
+    sequences = session.exec(query.offset(skip).limit(limit)).all()
+    
+    # Crea una lista di oggetti SequenceRead con i pittogrammi
+    result = []
+    for sequence in sequences:
+        # Crea un oggetto SequenceRead con i dati della sequenza
+        sequence_read = SequenceRead(
+            id=sequence.id,
+            name=sequence.name,
+            display_order=sequence.display_order,
+            is_favorite=sequence.is_favorite,
+            group_id=sequence.group_id,
+            created_at=sequence.created_at,
+            updated_at=sequence.updated_at,
+            created_by=sequence.created_by,
+            pictograms=[]
+        )
+        
+        # Ottieni i pittogrammi associati alla sequenza, ordinati per posizione
+        pictogram_query = select(SequencePictogramPosition, Pictogram).join(
+            Pictogram, SequencePictogramPosition.pictogram_id == Pictogram.id
+        ).where(
+            SequencePictogramPosition.sequence_id == sequence.id
+        ).order_by(
+            SequencePictogramPosition.position
+        )
+        
+        pictogram_results = session.exec(pictogram_query).all()
+        
+        # Aggiungi i pittogrammi alla risposta
+        for position, pictogram in pictogram_results:
+            sequence_read.pictograms.append(
+                SequenceReadPictogram(
+                    id=pictogram.id,
+                    word=pictogram.word,
+                    image_url=pictogram.image_url,
+                    lang=pictogram.lang,
+                    position=position.position
+                )
+            )
+        
+        result.append(sequence_read)
+    
+    return result
+
+
+@router.post("/", response_model=SequenceRead)
+def create_sequence(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    sequence_in: SequenceCreate,
+):
+    """
+    Create new sequence.
+    """
+    # Set created_by if not provided
+    if sequence_in.created_by is None:
+        sequence_in.created_by = current_user.id
+    
+    # Check if group exists if provided
+    if sequence_in.group_id:
+        group = session.get(SequenceGroup, sequence_in.group_id)
+        if not group:
+            raise HTTPException(status_code=404, detail="Sequence group not found")
+        
+        # Check permissions for the group
+        if not current_user.is_superuser and group.created_by != current_user.id:
+            raise HTTPException(status_code=403, detail="Not enough permissions for this group")
+    
+    # Create the sequence
+    sequence_data = sequence_in.model_dump(exclude={"pictogram_positions"})
+    sequence = Sequence(**sequence_data)
+    session.add(sequence)
+    session.commit()
+    session.refresh(sequence)
+    
+    # Aggiungi i pittogrammi alla sequenza se forniti
+    pictograms = []
+    if sequence_in.pictogram_positions:
+        for pos_data in sequence_in.pictogram_positions:
+            pictogram_id = pos_data.get("pictogram_id")
+            position = pos_data.get("position", 0)
+            
+            if not pictogram_id:
+                continue
+                
+            try:
+                # Converti l'ID in UUID
+                pictogram_uuid = uuid.UUID(pictogram_id)
+                
+                # Verifica che il pittogramma esista
+                pictogram = session.get(Pictogram, pictogram_uuid)
+                if not pictogram:
+                    # Crea un nuovo pittogramma con valori predefiniti
+                    new_pictogram = Pictogram(
+                        id=pictogram_uuid,
+                        word=f"Pittogramma {pictogram_id[:8]}",
+                        image_url="https://via.placeholder.com/150",
+                        is_custom=True,
+                        lang=current_user.lang if hasattr(current_user, 'lang') else "it",
+                        created_by=current_user.id
+                    )
+                    session.add(new_pictogram)
+                    session.commit()
+                    session.refresh(new_pictogram)
+                    pictogram = new_pictogram
+                
+                # Crea l'associazione tra sequenza e pittogramma
+                sequence_pictogram = SequencePictogramPosition(
+                    sequence_id=sequence.id,
+                    pictogram_id=pictogram_uuid,
+                    position=position
+                )
+                session.add(sequence_pictogram)
+                
+                # Aggiungi il pittogramma alla lista per la risposta
+                pictograms.append(
+                    SequenceReadPictogram(
+                        id=pictogram.id,
+                        word=pictogram.word,
+                        image_url=pictogram.image_url,
+                        lang=pictogram.lang,
+                        position=position
+                    )
+                )
+            except ValueError:
+                # Se l'ID non è un UUID valido, ignora l'elemento
+                continue
+        
+        session.commit()
+    
+    # Crea un oggetto SequenceRead con i dati della sequenza e i pittogrammi
+    sequence_read = SequenceRead(
+        id=sequence.id,
+        name=sequence.name,
+        display_order=sequence.display_order,
+        is_favorite=sequence.is_favorite,
+        group_id=sequence.group_id,
+        created_at=sequence.created_at,
+        updated_at=sequence.updated_at,
+        created_by=sequence.created_by,
+        pictograms=pictograms
+    )
+    
+    return sequence_read
+
+
+@router.get("/{sequence_id}", response_model=SequenceRead)
+def read_sequence(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    sequence_id: uuid.UUID,
+):
+    """
+    Get sequence by ID.
+    """
+    sequence = session.get(Sequence, sequence_id)
+    if not sequence:
+        raise HTTPException(status_code=404, detail="Sequence not found")
+    
+    # Check permissions
+    if not current_user.is_superuser and sequence.created_by != current_user.id:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    
+    # Crea un oggetto SequenceRead con i dati della sequenza
+    sequence_read = SequenceRead(
+        id=sequence.id,
+        name=sequence.name,
+        display_order=sequence.display_order,
+        is_favorite=sequence.is_favorite,
+        group_id=sequence.group_id,
+        created_at=sequence.created_at,
+        updated_at=sequence.updated_at,
+        created_by=sequence.created_by,
+        pictograms=[]
+    )
+    
+    # Ottieni i pittogrammi associati alla sequenza, ordinati per posizione
+    query = select(SequencePictogramPosition, Pictogram).join(
+        Pictogram, SequencePictogramPosition.pictogram_id == Pictogram.id
+    ).where(
+        SequencePictogramPosition.sequence_id == sequence_id
+    ).order_by(
+        SequencePictogramPosition.position
+    )
+    
+    results = session.exec(query).all()
+    
+    # Aggiungi i pittogrammi alla risposta
+    for position, pictogram in results:
+        sequence_read.pictograms.append(
+            SequenceReadPictogram(
+                id=pictogram.id,
+                word=pictogram.word,
+                image_url=pictogram.image_url,
+                lang=pictogram.lang,
+                position=position.position
+            )
+        )
+    
+    return sequence_read
+
+
+@router.put("/{sequence_id}", response_model=SequenceRead)
+def update_sequence(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    sequence_id: uuid.UUID,
+    sequence_in: SequenceUpdate,
+):
+    """
+    Update a sequence.
+    """
+    sequence = session.get(Sequence, sequence_id)
+    if not sequence:
+        raise HTTPException(status_code=404, detail="Sequence not found")
+    
+    # Check permissions
+    if not current_user.is_superuser and sequence.created_by != current_user.id:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    
+    # Check if new group exists if provided
+    if sequence_in.group_id is not None:
+        if sequence_in.group_id:  # Not None and not empty
+            group = session.get(SequenceGroup, sequence_in.group_id)
+            if not group:
+                raise HTTPException(status_code=404, detail="Sequence group not found")
+            
+            # Check permissions for the new group
+            if not current_user.is_superuser and group.created_by != current_user.id:
+                raise HTTPException(status_code=403, detail="Not enough permissions for this group")
+    
+    # Update sequence attributes
+    update_data = sequence_in.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(sequence, key, value)
+    
+    sequence.updated_at = func.now()
+    session.add(sequence)
+    session.commit()
+    session.refresh(sequence)
+    
+    # Crea un oggetto SequenceRead con i dati della sequenza
+    sequence_read = SequenceRead(
+        id=sequence.id,
+        name=sequence.name,
+        display_order=sequence.display_order,
+        is_favorite=sequence.is_favorite,
+        group_id=sequence.group_id,
+        created_at=sequence.created_at,
+        updated_at=sequence.updated_at,
+        created_by=sequence.created_by,
+        pictograms=[]
+    )
+    
+    # Ottieni i pittogrammi associati alla sequenza, ordinati per posizione
+    query = select(SequencePictogramPosition, Pictogram).join(
+        Pictogram, SequencePictogramPosition.pictogram_id == Pictogram.id
+    ).where(
+        SequencePictogramPosition.sequence_id == sequence_id
+    ).order_by(
+        SequencePictogramPosition.position
+    )
+    
+    results = session.exec(query).all()
+    
+    # Aggiungi i pittogrammi alla risposta
+    for position, pictogram in results:
+        sequence_read.pictograms.append(
+            SequenceReadPictogram(
+                id=pictogram.id,
+                word=pictogram.word,
+                image_url=pictogram.image_url,
+                lang=pictogram.lang,
+                position=position.position
+            )
+        )
+    
+    return sequence_read
+
+
+@router.delete("/{sequence_id}", response_model=Message)
+def delete_sequence(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    sequence_id: uuid.UUID,
+):
+    """
+    Delete a sequence.
+    """
+    sequence = session.get(Sequence, sequence_id)
+    if not sequence:
+        raise HTTPException(status_code=404, detail="Sequence not found")
+    
+    # Check permissions
+    if not current_user.is_superuser and sequence.created_by != current_user.id:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    
+    # Delete the sequence (items will be deleted automatically due to cascade)
+    session.delete(sequence)
+    session.commit()
+    return Message(message="Sequence deleted successfully")
+
+
+# Nessuna route per SequenceItem
+
+
+# Endpoint per verificare se un pittogramma esiste
+@router.get("/pictogram/{pictogram_id}", response_model=PictogramInfo)
+def check_pictogram(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    pictogram_id: uuid.UUID,
+):
+    """
+    Verifica se un pittogramma esiste e restituisce le sue informazioni.
+    Utile per il frontend per verificare se un pittogramma esiste prima di aggiungerlo a una sequenza.
+    """
+    pictogram = session.get(Pictogram, pictogram_id)
+    if not pictogram:
+        raise HTTPException(status_code=404, detail="Pictogram not found")
+    
+    # Create PictogramInfo object
+    pictogram_info = PictogramInfo(
+        id=pictogram.id,
+        word=pictogram.word,
+        image_url=pictogram.image_url,
+        lang=pictogram.lang
+    )
+    
+    return pictogram_info
+
+
+# Nessuna route per draft/items
+
+================
+File: api/routes/test_route.py
+================
+from fastapi import APIRouter
+from app.models import Message
+
+router = APIRouter(prefix="/test", tags=["test"])
+
+
+@router.get("/hello", response_model=Message)
+def hello_world() -> Message:
+    """
+    Simple test endpoint that returns a hello world message.
+    """
+    return Message(message="Hello World!")
+
+================
+File: api/routes/users.py
+================
+import uuid
+from typing import Any
+
+from fastapi import APIRouter, Depends, HTTPException
+from sqlmodel import col, delete, func, select
+
+from app import crud
+from app.api.deps import (
+    CurrentUser,
+    SessionDep,
+    get_current_active_superuser,
+)
+from app.core.config import settings
+from app.core.security import get_password_hash, verify_password
+from app.models import (
+    Item,
+    Message,
+    UpdatePassword,
+    User,
+    UserCreate,
+    UserPublic,
+    UserRegister,
+    UsersPublic,
+    UserUpdate,
+    UserUpdateMe,
+)
+from app.utils import generate_new_account_email, send_email
+
+router = APIRouter(prefix="/users", tags=["users"])
+
+
+@router.get(
+    "/",
+    dependencies=[Depends(get_current_active_superuser)],
+    response_model=UsersPublic,
+)
+def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
+    """
+    Retrieve users.
+    """
+
+    count_statement = select(func.count()).select_from(User)
+    count = session.exec(count_statement).one()
+
+    statement = select(User).offset(skip).limit(limit)
+    users = session.exec(statement).all()
+
+    return UsersPublic(data=users, count=count)
+
+
+@router.post(
+    "/", dependencies=[Depends(get_current_active_superuser)], response_model=UserPublic
+)
+def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
+    """
+    Create new user.
+    """
+    user = crud.get_user_by_email(session=session, email=user_in.email)
+    if user:
+        raise HTTPException(
+            status_code=400,
+            detail="The user with this email already exists in the system.",
+        )
+
+    user = crud.create_user(session=session, user_create=user_in)
+    if settings.emails_enabled and user_in.email:
+        email_data = generate_new_account_email(
+            email_to=user_in.email, username=user_in.email, password=user_in.password
+        )
+        send_email(
+            email_to=user_in.email,
+            subject=email_data.subject,
+            html_content=email_data.html_content,
+        )
+    return user
+
+
+@router.patch("/me", response_model=UserPublic)
+def update_user_me(
+    *, session: SessionDep, user_in: UserUpdateMe, current_user: CurrentUser
+) -> Any:
+    """
+    Update own user.
+    """
+
+    if user_in.email:
+        existing_user = crud.get_user_by_email(session=session, email=user_in.email)
+        if existing_user and existing_user.id != current_user.id:
+            raise HTTPException(
+                status_code=409, detail="User with this email already exists"
+            )
+    user_data = user_in.model_dump(exclude_unset=True)
+    current_user.sqlmodel_update(user_data)
+    session.add(current_user)
+    session.commit()
+    session.refresh(current_user)
+    return current_user
+
+
+@router.patch("/me/password", response_model=Message)
+def update_password_me(
+    *, session: SessionDep, body: UpdatePassword, current_user: CurrentUser
+) -> Any:
+    """
+    Update own password.
+    """
+    if not verify_password(body.current_password, current_user.hashed_password):
+        raise HTTPException(status_code=400, detail="Incorrect password")
+    if body.current_password == body.new_password:
+        raise HTTPException(
+            status_code=400, detail="New password cannot be the same as the current one"
+        )
+    hashed_password = get_password_hash(body.new_password)
+    current_user.hashed_password = hashed_password
+    session.add(current_user)
+    session.commit()
+    return Message(message="Password updated successfully")
+
+
+@router.get("/me", response_model=UserPublic)
+def read_user_me(current_user: CurrentUser) -> Any:
+    """
+    Get current user.
+    """
+    return current_user
+
+
+@router.delete("/me", response_model=Message)
+def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
+    """
+    Delete own user.
+    """
+    if current_user.is_superuser:
+        raise HTTPException(
+            status_code=403, detail="Super users are not allowed to delete themselves"
+        )
+    session.delete(current_user)
+    session.commit()
+    return Message(message="User deleted successfully")
+
+
+@router.post("/signup", response_model=UserPublic)
+def register_user(session: SessionDep, user_in: UserRegister) -> Any:
+    """
+    Create new user without the need to be logged in.
+    """
+    user = crud.get_user_by_email(session=session, email=user_in.email)
+    if user:
+        raise HTTPException(
+            status_code=400,
+            detail="The user with this email already exists in the system",
+        )
+    user_create = UserCreate.model_validate(user_in)
+    user = crud.create_user(session=session, user_create=user_create)
+    return user
+
+
+@router.get("/{user_id}", response_model=UserPublic)
+def read_user_by_id(
+    user_id: uuid.UUID, session: SessionDep, current_user: CurrentUser
+) -> Any:
+    """
+    Get a specific user by id.
+    """
+    user = session.get(User, user_id)
+    if user == current_user:
+        return user
+    if not current_user.is_superuser:
+        raise HTTPException(
+            status_code=403,
+            detail="The user doesn't have enough privileges",
+        )
+    return user
+
+
+@router.patch(
+    "/{user_id}",
+    dependencies=[Depends(get_current_active_superuser)],
+    response_model=UserPublic,
+)
+def update_user(
+    *,
+    session: SessionDep,
+    user_id: uuid.UUID,
+    user_in: UserUpdate,
+) -> Any:
+    """
+    Update a user.
+    """
+
+    db_user = session.get(User, user_id)
+    if not db_user:
+        raise HTTPException(
+            status_code=404,
+            detail="The user with this id does not exist in the system",
+        )
+    if user_in.email:
+        existing_user = crud.get_user_by_email(session=session, email=user_in.email)
+        if existing_user and existing_user.id != user_id:
+            raise HTTPException(
+                status_code=409, detail="User with this email already exists"
+            )
+
+    db_user = crud.update_user(session=session, db_user=db_user, user_in=user_in)
+    return db_user
+
+
+@router.delete("/{user_id}", dependencies=[Depends(get_current_active_superuser)])
+def delete_user(
+    session: SessionDep, current_user: CurrentUser, user_id: uuid.UUID
+) -> Message:
+    """
+    Delete a user.
+    """
+    user = session.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if user == current_user:
+        raise HTTPException(
+            status_code=403, detail="Super users are not allowed to delete themselves"
+        )
+    statement = delete(Item).where(col(Item.owner_id) == user_id)
+    session.exec(statement)  # type: ignore
+    session.delete(user)
+    session.commit()
+    return Message(message="User deleted successfully")
+
+================
+File: api/routes/utils.py
+================
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic.networks import EmailStr
+from sqlmodel import Session, select
+
+from app.api.deps import get_current_active_superuser, get_db, SessionDep
+from app.models import Message
+from app.utils import generate_test_email, send_email
+
+router = APIRouter(prefix="/utils", tags=["utils"])
+
+
+@router.post(
+    "/test-email/",
+    dependencies=[Depends(get_current_active_superuser)],
+    status_code=201,
+)
+def test_email(email_to: EmailStr) -> Message:
+    """
+    Test emails.
+    """
+    email_data = generate_test_email(email_to=email_to)
+    send_email(
+        email_to=email_to,
+        subject=email_data.subject,
+        html_content=email_data.html_content,
+    )
+    return Message(message="Test email sent")
+
+
+@router.get("/health-check/")
+async def health_check() -> bool:
+    return True
+
+
+@router.get("/db-check/")
+async def db_check(db: SessionDep) -> Message:
+    """
+    Check if the application is connected to the database.
+    """
+    try:
+        # Execute a simple query to check the database connection
+        db.exec(select(1)).first()
+        return Message(message="Database connection is working")
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Database connection error: {str(e)}"
+        )
+
+================
+File: backend_pre_start.py
+================
+import logging
+
+from sqlalchemy import Engine
+from sqlmodel import Session, select
+from tenacity import after_log, before_log, retry, stop_after_attempt, wait_fixed
+
+from app.core.db import engine
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+max_tries = 60 * 5  # 5 minutes
+wait_seconds = 1
+
+
+@retry(
+    stop=stop_after_attempt(max_tries),
+    wait=wait_fixed(wait_seconds),
+    before=before_log(logger, logging.INFO),
+    after=after_log(logger, logging.WARN),
+)
+def init(db_engine: Engine) -> None:
+    try:
+        with Session(db_engine) as session:
+            # Try to create session to check if DB is awake
+            session.exec(select(1))
+    except Exception as e:
+        logger.error(e)
+        raise e
+
+
+def main() -> None:
+    logger.info("Initializing service")
+    init(engine)
+    logger.info("Service finished initializing")
+
+
+if __name__ == "__main__":
+    main()
+
+================
+File: core/config.py
+================
+import os
+import pathlib
+import secrets
+import warnings
+from typing import Annotated, Any, Literal
+
+from pydantic import (
+    AnyUrl,
+    BeforeValidator,
+    EmailStr,
+    HttpUrl,
+    PostgresDsn,
+    computed_field,
+    model_validator,
+)
+from pydantic_core import MultiHostUrl
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing_extensions import Self
+
+
+def parse_cors(v: Any) -> list[str] | str:
+    if isinstance(v, str) and not v.startswith("["):
+        return [i.strip() for i in v.split(",")]
+    elif isinstance(v, list | str):
+        return v
+    raise ValueError(v)
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        # Use .env file in the current directory
+        env_file=".env",
+        env_ignore_empty=True,
+        extra="ignore",
+    )
+    API_V1_STR: str = "/api/v1"
+    SECRET_KEY: str = secrets.token_urlsafe(32)
+    # 60 minutes * 24 hours * 8 days = 8 days
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
+    FRONTEND_HOST: str = "http://localhost:5174"
+    ENVIRONMENT: Literal["local", "staging", "production"] = "local"
+    OPENAI_API_KEY: str | None = None
+    DEFAULT_LANGUAGE: str = "it"
+    API_KEY: str | None = None  # Alias for OPENAI_API_KEY for backward compatibility
+    PICTOGRAMS_FILE: str | None = None  # Will be set dynamically by get_pictograms_file
+
+    BACKEND_CORS_ORIGINS: Annotated[
+        list[AnyUrl] | str, BeforeValidator(parse_cors)
+    ] = []
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def all_cors_origins(self) -> list[str]:
+        return [str(origin).rstrip("/") for origin in self.BACKEND_CORS_ORIGINS] + [
+            self.FRONTEND_HOST
+        ]
+
+    PROJECT_NAME: str
+    SENTRY_DSN: HttpUrl | None = None
+    POSTGRES_SERVER: str
+    POSTGRES_PORT: int = 5432
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str = ""
+    POSTGRES_DB: str = ""
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def SQLALCHEMY_DATABASE_URI(self) -> PostgresDsn:
+        return MultiHostUrl.build(
+            scheme="postgresql+psycopg",
+            username=self.POSTGRES_USER,
+            password=self.POSTGRES_PASSWORD,
+            host=self.POSTGRES_SERVER,
+            port=self.POSTGRES_PORT,
+            path=self.POSTGRES_DB,
+        )
+
+    SMTP_TLS: bool = True
+    SMTP_SSL: bool = False
+    SMTP_PORT: int = 587
+    SMTP_HOST: str | None = None
+    SMTP_USER: str | None = None
+    SMTP_PASSWORD: str | None = None
+    EMAILS_FROM_EMAIL: EmailStr | None = None
+    EMAILS_FROM_NAME: EmailStr | None = None
+
+    @model_validator(mode="after")
+    def _set_default_emails_from(self) -> Self:
+        if not self.EMAILS_FROM_NAME:
+            self.EMAILS_FROM_NAME = self.PROJECT_NAME
+        return self
+
+    EMAIL_RESET_TOKEN_EXPIRE_HOURS: int = 48
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def emails_enabled(self) -> bool:
+        return bool(self.SMTP_HOST and self.EMAILS_FROM_EMAIL)
+
+    EMAIL_TEST_USER: EmailStr = "test@example.com"
+    FIRST_SUPERUSER: EmailStr
+    FIRST_SUPERUSER_PASSWORD: str
+
+    def _check_default_secret(self, var_name: str, value: str | None) -> None:
+        if value == "changethis":
+            message = (
+                f'The value of {var_name} is "changethis", '
+                "for security, please change it, at least for deployments."
+            )
+            if self.ENVIRONMENT == "local":
+                warnings.warn(message, stacklevel=1)
+            else:
+                raise ValueError(message)
+
+    @model_validator(mode="after")
+    def _enforce_non_default_secrets(self) -> Self:
+        self._check_default_secret("SECRET_KEY", self.SECRET_KEY)
+        self._check_default_secret("POSTGRES_PASSWORD", self.POSTGRES_PASSWORD)
+        self._check_default_secret(
+            "FIRST_SUPERUSER_PASSWORD", self.FIRST_SUPERUSER_PASSWORD
+        )
+
+        return self
+        
+    def get_pictograms_file(self, language: str = None) -> str:
+        """
+        Get the pictograms file path based on language
+        
+        Args:
+            language: Language code (e.g., 'it', 'en', 'de')
+            
+        Returns:
+            Path to the pictograms file
+        """
+        lang = language or self.DEFAULT_LANGUAGE
+        
+        # Get app directory (parent of core directory)
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        app_dir = os.path.dirname(current_dir)
+        
+        # Check if language-specific file exists in data directory
+        data_dir = pathlib.Path(app_dir) / "data"
+        
+        # Create data directory if it doesn't exist
+        os.makedirs(data_dir, exist_ok=True)
+        
+        lang_file = data_dir / f"{lang}_pittogrammi.json"
+        
+        if lang_file.exists():
+            print(f"Using language file: {lang_file}")
+            return str(lang_file)
+        
+        # Fallback to default file in app directory
+        default_file = os.path.join(app_dir, "pittogrammi.json")
+        print(f"Using default file: {default_file}")
+        
+        # If default file doesn't exist, create an empty one
+        if not os.path.exists(default_file):
+            with open(default_file, 'w', encoding='utf-8') as f:
+                f.write('{"pittogrammi": []}')
+        
+        return default_file
+
+
+# Create global settings instance
+settings = Settings()  # type: ignore
+
+# Set the PICTOGRAMS_FILE and API_KEY attributes
+settings.PICTOGRAMS_FILE = settings.get_pictograms_file()
+settings.API_KEY = settings.OPENAI_API_KEY
+
+================
+File: core/db.py
+================
+from sqlmodel import Session, create_engine, select
+
+from app import crud
+from app.core.config import settings
+from app.models import User, UserCreate
+
+engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
+
+
+# make sure all SQLModel models are imported (app.models) before initializing DB
+# otherwise, SQLModel might fail to initialize relationships properly
+# for more details: https://github.com/fastapi/full-stack-fastapi-template/issues/28
+
+
+def init_db(session: Session) -> None:
+    # Tables should be created with Alembic migrations
+    # But if you don't want to use migrations, create
+    # the tables un-commenting the next lines
+    # from sqlmodel import SQLModel
+
+    # This works because the models are already imported and registered from app.models
+    # SQLModel.metadata.create_all(engine)
+
+    user = session.exec(
+        select(User).where(User.email == settings.FIRST_SUPERUSER)
+    ).first()
+    if not user:
+        user_in = UserCreate(
+            email=settings.FIRST_SUPERUSER,
+            password=settings.FIRST_SUPERUSER_PASSWORD,
+            is_superuser=True,
+        )
+        user = crud.create_user(session=session, user_create=user_in)
+
+================
+File: core/security.py
+================
+from datetime import datetime, timedelta, timezone
+from typing import Any
+
+import jwt
+from passlib.context import CryptContext
+
+from app.core.config import settings
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+ALGORITHM = "HS256"
+
+
+def create_access_token(subject: str | Any, expires_delta: timedelta) -> str:
+    expire = datetime.now(timezone.utc) + expires_delta
+    to_encode = {"exp": expire, "sub": str(subject)}
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
+
+
+def get_password_hash(password: str) -> str:
+    return pwd_context.hash(password)
+
+================
+File: crud.py
+================
+import uuid
+from typing import Any
+
+from sqlmodel import Session, select
+
+from app.core.security import get_password_hash, verify_password
+from app.models import Item, ItemCreate, User, UserCreate, UserUpdate
+
+
+def create_user(*, session: Session, user_create: UserCreate) -> User:
+    user_data = user_create.model_dump()
+    user_data["hashed_password"] = get_password_hash(user_create.password)
+    db_obj = User(**user_data)
+    session.add(db_obj)
+    session.commit()
+    session.refresh(db_obj)
+    return db_obj
+
+
+def update_user(*, session: Session, db_user: User, user_in: UserUpdate) -> Any:
+    user_data = user_in.model_dump(exclude_unset=True)
+    extra_data = {}
+    if "password" in user_data:
+        password = user_data["password"]
+        hashed_password = get_password_hash(password)
+        extra_data["hashed_password"] = hashed_password
+    db_user.sqlmodel_update(user_data, update=extra_data)
+    session.add(db_user)
+    session.commit()
+    session.refresh(db_user)
+    return db_user
+
+
+def get_user_by_email(*, session: Session, email: str) -> User | None:
+    statement = select(User).where(User.email == email)
+    session_user = session.exec(statement).first()
+    return session_user
+
+
+def authenticate(*, session: Session, email: str, password: str) -> User | None:
+    db_user = get_user_by_email(session=session, email=email)
+    if not db_user:
+        return None
+    if not verify_password(password, db_user.hashed_password):
+        return None
+    return db_user
+
+
+def create_item(*, session: Session, item_in: ItemCreate, owner_id: uuid.UUID) -> Item:
+    item_data = item_in.model_dump()
+    item_data["owner_id"] = owner_id
+    db_item = Item(**item_data)
+    session.add(db_item)
+    session.commit()
+    session.refresh(db_item)
+    return db_item
+

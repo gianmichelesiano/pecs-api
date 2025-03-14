@@ -71,7 +71,9 @@ def create_post(
     """
     Create new post.
     """
-    post = Post.model_validate(post_in, update={"owner_id": current_user.id})
+    post_data = post_in.model_dump()
+    post_data["owner_id"] = current_user.id
+    post = Post(**post_data)
     session.add(post)
     session.commit()
     session.refresh(post)

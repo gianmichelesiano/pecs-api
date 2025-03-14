@@ -55,6 +55,7 @@ dependencies = [
     { name = "emails" },
     { name = "fastapi", extra = ["standard"] },
     { name = "httpx" },
+    { name = "inflect" },
     { name = "jinja2" },
     { name = "openai" },
     { name = "passlib", extra = ["bcrypt"] },
@@ -88,6 +89,7 @@ requires-dist = [
     { name = "emails", specifier = ">=0.6,<1.0" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.114.2,<1.0.0" },
     { name = "httpx", specifier = ">=0.25.1,<1.0.0" },
+    { name = "inflect", specifier = ">=6.0.0,<7.0.0" },
     { name = "jinja2", specifier = ">=3.1.4,<4.0.0" },
     { name = "openai", specifier = ">=1.0.0,<2.0.0" },
     { name = "passlib", extras = ["bcrypt"], specifier = ">=1.7.4,<2.0.0" },
@@ -574,6 +576,19 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/f1/70/7703c29685631f5a7590aa73f1f1d3fa9a380e654b86af429e0934a32f7d/idna-3.10.tar.gz", hash = "sha256:12f65c9b470abda6dc35cf8e63cc574b1c52b11df2c86030af0ac09b01b13ea9", size = 190490 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/76/c6/c88e154df9c4e1a2a66ccf0005a88dfb2650c1dffb6f5ce603dfbd452ce3/idna-3.10-py3-none-any.whl", hash = "sha256:946d195a0d259cbba61165e88e65941f16e9b36ea6ddb97f00452bae8b1287d3", size = 70442 },
+]
+
+[[package]]
+name = "inflect"
+version = "6.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pydantic" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/76/2e/a7c1fd746c09d5d0498d6d00fa14afebdf26d44c3e64a630616489ece1a3/inflect-6.2.0.tar.gz", hash = "sha256:518088ef414a4e15df70e6bcb40d021da4d423cc6c2fd4c0cad5500d39f86627", size = 71776 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/6a/e1/79603e4ae91b38a91dfd855f92321afb65e7f3d0192ac831d00bc9c45cca/inflect-6.2.0-py3-none-any.whl", hash = "sha256:5a005e0c9afe152cc95d552a59b8b0c19efc51823405b43d89e984f0c33bc243", size = 35083 },
 ]
 
 [[package]]

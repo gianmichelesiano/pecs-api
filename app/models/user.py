@@ -9,6 +9,7 @@ class UserBase(SQLModel):
     is_active: bool = True
     is_superuser: bool = False
     full_name: Optional[str] = Field(default=None, max_length=255)
+    lang: Optional[str] = Field(default="en", max_length=2)
 
 class UserCreate(UserBase):
     password: str = Field(min_length=8, max_length=40)
@@ -17,6 +18,7 @@ class UserRegister(SQLModel):
     email: EmailStr = Field(max_length=255)
     password: str = Field(min_length=8, max_length=40)
     full_name: Optional[str] = Field(default=None, max_length=255)
+    lang: Optional[str] = Field(default="en", max_length=2)
 
 class UserUpdate(UserBase):
     email: Optional[EmailStr] = Field(default=None, max_length=255)
@@ -25,6 +27,7 @@ class UserUpdate(UserBase):
 class UserUpdateMe(SQLModel):
     full_name: Optional[str] = Field(default=None, max_length=255)
     email: Optional[EmailStr] = Field(default=None, max_length=255)
+    lang: Optional[str] = Field(default=None, max_length=2)
 
 class UpdatePassword(SQLModel):
     current_password: str = Field(min_length=8, max_length=40)
@@ -40,11 +43,13 @@ class User(UserBase, table=True):
     items: List["Item"] = Relationship(back_populates="owner", sa_relationship_kwargs={"cascade": "all, delete"})
     posts: List["Post"] = Relationship(back_populates="owner", sa_relationship_kwargs={"cascade": "all, delete"})
 
-    categories: List["Category"] = Relationship(back_populates="creator")
-    pictograms: List["Pictogram"] = Relationship(back_populates="creator") 
-    sequence_groups: List["SequenceGroup"] = Relationship(back_populates="creator")
-    sequences: List["Sequence"] = Relationship(back_populates="creator")
     sync_logs: List["SyncLog"] = Relationship(back_populates="user")
+    
+    # PECS relationships
+    pecs: List["PECS"] = Relationship(back_populates="user")
+    phrases: List["Phrase"] = Relationship(back_populates="user")
+    favorite_pecs: List["FavoritePECS"] = Relationship(back_populates="user")
+    favorite_phrases: List["FavoritePhrase"] = Relationship(back_populates="user")
 
 class UserPublic(UserBase):
     id: uuid.UUID

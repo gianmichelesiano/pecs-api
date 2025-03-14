@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query
 from typing import List, Dict, Any, Optional
 import json
 
-from app.models.pictogram import PhraseRequest, WordRequest, PictogramResponse
+from app.models.analyze_models import PhraseRequest, WordRequest, PictogramResponse
 from app.services.pictogram_search import PictogramSearch, find_id_by_name, create_options_list
 from app.services.sentence_tokenizer import SentenceTokenizer
 from app.core.config import settings
@@ -177,47 +177,46 @@ async def get_options(
         request: Word request object containing the word to find options for
         language: Language code for pictogram search (e.g., 'it', 'en', 'de', 'es', 'fr')
     """
-    try:
-        # Get language-specific pictograms data and search service
-        pictograms_data = get_pictograms_data(language)
-        search_service = get_search_service(language)
-        
-        word = request.word
-        
-        if not word:
-            raise HTTPException(status_code=400, detail="Word is required")
-        
-        pictograms = []
-        token_clean = word.strip().replace('"', '').lower()
-        token_clean = to_singolare(token_clean, language)
-        token_clean = trova_parole_simili(token_clean, language)
 
-        pictogram_id = find_id_by_name(token_clean, pictograms_data)
+    print(request)
+    pictograms_data = get_pictograms_data(language)
+    search_service = get_search_service(language)
+    
+    
+    word = request.word
+    print(word)
+    
+    if not word:
+        raise HTTPException(status_code=400, detail="Word is required")
+    
+    pictograms = []
+    token_clean = word.strip().replace('"', '').lower()
+    token_clean = to_singolare(token_clean, language)
+    token_clean = trova_parole_simili(token_clean, language)
 
-        if pictogram_id:
-            pictograms.append({
-                "word": token_clean,
-                "id": pictogram_id,
-                "url": f"https://api.arasaac.org/v1/pictograms/{pictogram_id}?download=false"
-            })
-        else:
-            # Get options for the word
-            options = create_options_list(word, search_service)
-            options = options[:10]
-            
-            # Remove duplicates while preserving order
-            unique_options = list(dict.fromkeys(options))
-            
-            for item in unique_options:
-                pictogram_id = find_id_by_name(item, pictograms_data)
-                if pictogram_id:
-                    pictograms.append({
-                        "word": token_clean,
-                        "id": pictogram_id,
-                        "url": f"https://api.arasaac.org/v1/pictograms/{pictogram_id}?download=false"
-                    })
+    pictogram_id = find_id_by_name(token_clean, pictograms_data)
+
+    if pictogram_id:
+        pictograms.append({
+            "word": token_clean,
+            "id": pictogram_id,
+            "url": f"https://api.arasaac.org/v1/pictograms/{pictogram_id}?download=false"
+        })
+    else:
+        # Get options for the word
+        options = create_options_list(word, search_service)
+        options = options[:10]
         
-        return pictograms
+        # Remove duplicates while preserving order
+        unique_options = list(dict.fromkeys(options))
         
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        for item in unique_options:
+            pictogram_id = find_id_by_name(item, pictograms_data)
+            if pictogram_id:
+                pictograms.append({
+                    "word": token_clean,
+                    "id": pictogram_id,
+                    "url": f"https://api.arasaac.org/v1/pictograms/{pictogram_id}?download=false"
+                })
+    
+    return pictograms

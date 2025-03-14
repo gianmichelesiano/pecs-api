@@ -28,6 +28,14 @@ TokenDep = Annotated[str, Depends(reusable_oauth2)]
 
 
 def get_current_user(session: SessionDep, token: TokenDep) -> User:
+
+    if settings.ENVIRONMENT == "local":
+        # You can either:
+        # 1. Return a default user (example below)
+        default_user = session.query(User).filter(User.is_superuser == True).first()
+        if default_user:
+            return default_user
+       
     try:
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]

@@ -5,7 +5,6 @@ from sqlmodel import Session, select
 from app.api.deps import get_db, get_current_active_superuser, SessionDep, CurrentUser
 from app.models.nome import Nome, NomeCreate, NomeUpdate
 from app.models.user import User
-from app.models.pictogram import Pictogram
 
 router = APIRouter(prefix="/nomi", tags=["nomi"])
 
@@ -46,7 +45,7 @@ def create_nome(
     No validation is performed to check if the pictogram exists.
     """
     # Create the nome directly
-    nome = Nome.model_validate(nome_in.model_dump())
+    nome = Nome(**nome_in.model_dump())
     db.add(nome)
     db.commit()
     db.refresh(nome)

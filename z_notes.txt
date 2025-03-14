@@ -27,8 +27,14 @@ apple
  .\.venv\Scripts\activate.ps1; cd app; alembic -c ../alembic.ini revision --autogenerate -m "add_categories_table"
 
 
-
+py -3 -m uv sync
 
 
 
 docker-compose -f docker-compose.traefik.yml --env-file .env.traefik down
+
+docker-compose exec backend-pecs bash
+
+# Once inside the container, run the scripts
+python -m script.import_categories
+python -m script.import_pecs

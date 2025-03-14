@@ -5,21 +5,27 @@ from .auth import Message, Token, TokenPayload, NewPassword, UpdatePassword
 from .user import User, UserCreate, UserPublic, UsersPublic, UserUpdate, UserUpdateMe, UserRegister
 from .post import Post, PostCreate, PostUpdate, PostPublic, PostsPublic
 from .nome import Nome, NomeCreate, NomeUpdate
-from .category import Category, CategoryBase, CategoryCreate, CategoryUpdate, CategoryRead
-
-# Pictogram models
-from .pictogram import Pictogram, PictogramCreate, PictogramUpdate, PictogramRead, PictogramCategory
-
-
-# Sequence models
-from .sequence import (
-    SequenceGroup, SequenceGroupBase, SequenceGroupCreate, SequenceGroupUpdate, SequenceGroupRead,
-    Sequence, SequenceBase, SequenceCreate, SequenceUpdate, SequenceRead,
-    SequenceItem, SequenceItemBase, SequenceItemCreate, SequenceItemUpdate, SequenceItemRead
-)
+from .analyze_models import PhraseRequest, WordRequest, PictogramResponse
 
 # SyncLog models
 from .sync_log import SyncLog, SyncLogBase, SyncLogCreate, SyncLogRead
+
+# PECS models
+from .pecs import (
+    PECS, PECSBase, PECSCreate, PECSUpdate, PECSRead,
+    PECSTranslation, PECSTranslationBase, PECSTranslationCreate, PECSTranslationUpdate, PECSTranslationRead
+)
+from .pecs_category import (
+    PECSCategory, PECSCategoryBase, PECSCategoryCreate, PECSCategoryUpdate, PECSCategoryRead,
+    CategoryTranslation, CategoryTranslationBase, CategoryTranslationCreate, CategoryTranslationUpdate, CategoryTranslationRead,
+    PECSCategoryItem
+)
+from .phrase import (
+    Phrase, PhraseBase, PhraseCreate, PhraseUpdate, PhraseRead,
+    PhraseTranslation, PhraseTranslationBase, PhraseTranslationCreate, PhraseTranslationUpdate, PhraseTranslationRead,
+    PhrasePECS, PhrasePECSBase, PhrasePECSCreate, PhrasePECSUpdate, PhrasePECSRead
+)
+from .favorite import FavoritePECS, FavoritePECSBase, FavoritePhrase, FavoritePhraseBase
 
 __all__ = [
     "Item",
@@ -47,14 +53,23 @@ __all__ = [
     "Nome",
     "NomeCreate",
     "NomeUpdate",
-    'Category', 'CategoryBase', 'CategoryCreate', 'CategoryUpdate', 'CategoryRead',
-    # Pictogram
-    'Pictogram', 'PictogramBase', 'PictogramCreate', 'PictogramUpdate', 'PictogramRead',
-    'PictogramCategory',
-    # Sequence
-    'SequenceGroup', 'SequenceGroupBase', 'SequenceGroupCreate', 'SequenceGroupUpdate', 'SequenceGroupRead',
-    'Sequence', 'SequenceBase', 'SequenceCreate', 'SequenceUpdate', 'SequenceRead',
-    'SequenceItem', 'SequenceItemBase', 'SequenceItemCreate', 'SequenceItemUpdate', 'SequenceItemRead',
+    # Analyze models
+    "PhraseRequest",
+    "WordRequest",
+    "PictogramResponse",
     # SyncLog
-    'SyncLog', 'SyncLogBase', 'SyncLogCreate', 'SyncLogRead'
+    'SyncLog', 'SyncLogBase', 'SyncLogCreate', 'SyncLogRead',
+    # PECS
+    'PECS', 'PECSBase', 'PECSCreate', 'PECSUpdate', 'PECSRead',
+    'PECSTranslation', 'PECSTranslationBase', 'PECSTranslationCreate', 'PECSTranslationUpdate', 'PECSTranslationRead',
+    # PECS Categories
+    'PECSCategory', 'PECSCategoryBase', 'PECSCategoryCreate', 'PECSCategoryUpdate', 'PECSCategoryRead',
+    'CategoryTranslation', 'CategoryTranslationBase', 'CategoryTranslationCreate', 'CategoryTranslationUpdate', 'CategoryTranslationRead',
+    'PECSCategoryItem',
+    # Phrases
+    'Phrase', 'PhraseBase', 'PhraseCreate', 'PhraseUpdate', 'PhraseRead',
+    'PhraseTranslation', 'PhraseTranslationBase', 'PhraseTranslationCreate', 'PhraseTranslationUpdate', 'PhraseTranslationRead',
+    'PhrasePECS', 'PhrasePECSBase', 'PhrasePECSCreate', 'PhrasePECSUpdate', 'PhrasePECSRead',
+    # Favorites
+    'FavoritePECS', 'FavoritePECSBase', 'FavoritePhrase', 'FavoritePhraseBase'
 ]

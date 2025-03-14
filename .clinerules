@@ -22,6 +22,11 @@ DO NOT read or modify:
 -   Use environment variables for secrets
 -   Keep credentials out of logs and output
 
-This is an fastapi app, 
-be coincise
-f
+we are in wondows
+fast api app
+
+to run the app ./start.bat
+
+when you wsnt run alembic use
+.venv/Script/activate
+python -m alembic revision --autogenerate -m "add_lang_field_to_pictogram"
