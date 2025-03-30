@@ -317,20 +317,3 @@ def phrase_2_token( sentence, language="it"):
         return {"error": str(e)}
 
 
-
-    
-    
-    
-    #sentence_it = "Michele andare stazione treno andare ristorante"
-    #result = token_2_phrase(api_key, sentence_it, "it")
-    
-    phrase_sentence = "Michele va alla stazione con il treno e poi va al ristorante"
-    result = phrase_2_token(api_key, phrase_sentence, "it")    
-    
-    
-    #sentence_it = "Michele go train-station go  restaurant"
-    #result_it = token_2_phrase(api_key, sentence_it, "en")
-    print(f"Originale: {result['original_sentence']}")
-    print(f"Corretta: {result.get('converted_sentence', '')}")
-    print(f"Mappatura: {result.get('mapping', '')}")
-'''
