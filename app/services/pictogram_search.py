@@ -1,6 +1,13 @@
 import json
 from typing import List, Tuple, Dict, Optional
 from difflib import SequenceMatcher
+from typing import Optional
+from uuid import UUID
+from sqlalchemy import func, text, or_
+from sqlalchemy.orm import Session
+from sqlalchemy import select
+from app.models import PECS, PECSTranslation 
+
 
 class PictogramSearch:
     def __init__(self, json_path: str):
@@ -93,6 +100,7 @@ def find_id_by_name(name: str, pictograms: List[Dict]) -> Optional[int]:
             return item["id"]
     return None
 
+
 def create_options_list(missing_word: str, search_service: PictogramSearch) -> List[str]:
     """
     Create a list of options for a missing word.
@@ -111,3 +119,58 @@ def create_options_list(missing_word: str, search_service: PictogramSearch) -> L
         options.append(pictogram['nome'])
         
     return options
+
+
+
+def find_pecs_by_name(db: Session, name: str, language: str, similarity_threshold: float = 0.3):
+    """
+    Find PECS by name or custom name using fuzzy matching.
+    
+    Args:
+        db: Database session
+        name: The name to search for
+        language: The language code to search in
+        similarity_threshold: Minimum similarity score (0-1) to consider a match
+        
+    Returns:
+        List of dicts with PECS record and translation_name if found, empty list otherwise
+    """
+    results = []
+    
+    # Search in custom PECS using similarity
+    custom_pecs_stmt = select(PECS).where(
+        PECS.is_custom == True,
+        func.similarity(PECS.name_custom, name) > similarity_threshold
+    ).order_by(func.similarity(PECS.name_custom, name).desc()).limit(3)
+    
+    custom_pecs = db.execute(custom_pecs_stmt)
+    
+    for custom_pecs_row in custom_pecs:
+        pecs_object = custom_pecs_row[0]
+        results.append({
+            "pecs": pecs_object,
+            "translation_name": pecs_object.name_custom
+        })
+    
+    # If not found, search in translations with fuzzy matching
+    if len(results) < 4:
+        print("No custom PECS found")
+        translation_pecs_stmt = select(
+            PECS, 
+            PECSTranslation.name.label('translation_name')
+        ).join(
+            PECSTranslation, PECS.id == PECSTranslation.pecs_id
+        ).where(
+            PECSTranslation.language_code == language,
+            func.similarity(PECSTranslation.name, name) > similarity_threshold
+        ).order_by(func.similarity(PECSTranslation.name, name).desc()).limit(3)
+        
+        translation_pecs = db.execute(translation_pecs_stmt)
+        
+        for translation_pecs_row in translation_pecs:
+            results.append({
+                "pecs": translation_pecs_row.PECS,
+                "translation_name": translation_pecs_row.translation_name
+            })
+    
+    return results

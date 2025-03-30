@@ -1,21 +1,28 @@
 from typing import Any, List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from sqlmodel import select, Session
 
 from app.api.deps import CurrentUser, SessionDep
-from app.models import (
+from app.models import (Collection,
     Phrase, PhraseCreate, PhraseRead, PhraseUpdate,
     PhraseTranslation, PhraseTranslationCreate, PhraseTranslationRead, PhraseTranslationUpdate,
-    PhrasePECS, PhrasePECSCreate, PhrasePECSRead, PhrasePECSUpdate,
+    PhrasePECS, PhrasePECSCreate, PhrasePECSRead, PhrasePECSUpdate, PECSOutput, PECSInput,
     PECS, PECSRead,
+    PhraseCollection,
     Message
 )
 from pydantic import BaseModel
+from app.services.token_phrase import token_2_phrase
 
 router = APIRouter(prefix="/phrases", tags=["phrases"])
 
+
+class TransformPecsRequest(BaseModel):
+    pecs: List[PECSInput]
+    language: str
 
 class ImageURLResponse(BaseModel):
     image_url: str
@@ -249,7 +256,8 @@ def create_phrase(
     phrase = Phrase(
         user_id=current_user.id
     )
-    
+    # Stampa il payload ricevuto
+    print(f"Payload ricevuto: {phrase_in}")
     session.add(phrase)
     session.commit()
     session.refresh(phrase)
@@ -298,6 +306,50 @@ def create_phrase(
             session.add(phrase_pecs)
         
         session.commit()
+        session.refresh(phrase)
+    
+    # Add collections if provided
+    print(f"DEBUG - collection_ids type: {type(phrase_in.collection_ids)}")
+    print(f"DEBUG - collection_ids: {phrase_in.collection_ids}")
+    print(f"DEBUG - Raw request data: {phrase_in.model_dump()}")
+    
+    # Try to handle collection_ids even if they're in a different format
+    collection_ids = []
+    
+    # If collection_ids is directly available
+    if phrase_in.collection_ids:
+        collection_ids = phrase_in.collection_ids
+        print(f"DEBUG - Using direct collection_ids: {collection_ids}")
+    
+    if collection_ids:
+        print(f"DEBUG - Processing {len(collection_ids)} collection IDs")
+        for collection_id in collection_ids:
+            try:
+                # Ensure collection_id is a UUID
+                if isinstance(collection_id, str):
+                    collection_id = UUID(collection_id)
+                    print(f"DEBUG - Converted string to UUID: {collection_id}")
+                
+                print(f"DEBUG - Processing collection_id: {collection_id}")
+                # Verify collection exists
+                collection = session.get(Collection, collection_id)
+                if not collection:
+                    print(f"DEBUG - Collection not found: {collection_id}")
+                    continue  # Skip invalid collection
+                
+                print(f"DEBUG - Collection found: {collection_id}")
+                # Create association
+                phrase_collection = PhraseCollection(
+                    phrase_id=phrase.id,
+                    collection_id=collection_id
+                )
+                session.add(phrase_collection)
+                print(f"DEBUG - Added association for phrase {phrase.id} and collection {collection_id}")
+            except Exception as e:
+                print(f"DEBUG - Error processing collection_id {collection_id}: {str(e)}")
+        
+        session.commit()
+        print(f"DEBUG - Committed associations")
         session.refresh(phrase)
     
     return phrase
@@ -387,6 +439,47 @@ def update_phrase(
                 position=pecs_item.get("position", 0)
             )
             session.add(phrase_pecs)
+    
+    # Handle collections
+    print(f"DEBUG UPDATE - collection_ids in update_data: {update_data.get('collection_ids')}")
+    if "collection_ids" in update_data and update_data["collection_ids"]:
+        # Remove existing collection associations
+        existing_collections = session.exec(
+            select(PhraseCollection).where(PhraseCollection.phrase_id == phrase.id)
+        ).all()
+        
+        print(f"DEBUG UPDATE - Removing {len(existing_collections)} existing collection associations")
+        for item in existing_collections:
+            session.delete(item)
+        
+        # Add new collection associations
+        collection_ids = update_data["collection_ids"]
+        print(f"DEBUG UPDATE - Adding {len(collection_ids)} new collection associations")
+        
+        for collection_id in collection_ids:
+            try:
+                # Ensure collection_id is a UUID
+                if isinstance(collection_id, str):
+                    collection_id = UUID(collection_id)
+                    print(f"DEBUG UPDATE - Converted string to UUID: {collection_id}")
+                
+                print(f"DEBUG UPDATE - Processing collection_id: {collection_id}")
+                # Verify collection exists
+                collection = session.get(Collection, collection_id)
+                if not collection:
+                    print(f"DEBUG UPDATE - Collection not found: {collection_id}")
+                    continue  # Skip invalid collection
+                
+                print(f"DEBUG UPDATE - Collection found: {collection_id}")
+                # Create association
+                phrase_collection = PhraseCollection(
+                    phrase_id=phrase.id,
+                    collection_id=collection_id
+                )
+                session.add(phrase_collection)
+                print(f"DEBUG UPDATE - Added association for phrase {phrase.id} and collection {collection_id}")
+            except Exception as e:
+                print(f"DEBUG UPDATE - Error processing collection_id {collection_id}: {str(e)}")
     
     session.add(phrase)
     session.commit()
@@ -629,3 +722,28 @@ def remove_pecs_from_phrase(
     session.commit()
     
     return Message(message="PECS removed from phrase successfully")
+
+@router.post("/transform-pecs", response_model=List[PECSOutput])
+def transform_pecs_format(
+    request: TransformPecsRequest
+) -> List[PECSOutput]:
+    """
+    Transform PECS items from the input format to the output format with tokens and phrases.
+    """
+    transformed_items = []
+    
+    sequence = ''
+    for item in request.pecs:
+        sequence += item.name + ' '
+
+    result = token_2_phrase(sequence, request.language)
+
+    for key, val in result['mapping'].items():
+        transformed_item = PECSOutput(
+            id=item.id,
+            token=key,
+            phrase=val,
+            position=item.position
+        )
+        transformed_items.append(transformed_item)
+    return transformed_items

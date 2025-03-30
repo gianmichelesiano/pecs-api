@@ -25,6 +25,7 @@ dependencies = [
     "sqlalchemy>=2.0.14",
     "psycopg2-binary<3.0.0,>=2.9.0",
     "inflect<7.0.0,>=6.0.0",
+    "supabase>=2.13.0",
 ]
 
 [tool.uv]

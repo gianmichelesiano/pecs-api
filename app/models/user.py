@@ -48,8 +48,12 @@ class User(UserBase, table=True):
     # PECS relationships
     pecs: List["PECS"] = Relationship(back_populates="user")
     phrases: List["Phrase"] = Relationship(back_populates="user")
+    collections: List["Collection"] = Relationship(back_populates="user")
     favorite_pecs: List["FavoritePECS"] = Relationship(back_populates="user")
     favorite_phrases: List["FavoritePhrase"] = Relationship(back_populates="user")
+    
+    # Images relationship
+    images: List["Image"] = Relationship(back_populates="owner", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
 
 class UserPublic(UserBase):
     id: uuid.UUID

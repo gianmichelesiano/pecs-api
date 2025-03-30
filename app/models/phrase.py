@@ -4,7 +4,8 @@ from datetime import datetime
 from sqlmodel import Field, SQLModel, Relationship
 from uuid import UUID
 import uuid
-
+from pydantic import BaseModel
+from typing import List
 from .user import User
 from .pecs import PECS
 
@@ -18,11 +19,13 @@ class PhraseCreate(PhraseBase):
     user_id: UUID
     translations: Optional[List[dict]] = None
     pecs_items: Optional[List[dict]] = None
+    collection_ids: Optional[List[UUID]] = None
 
 
 class PhraseUpdate(SQLModel):
     translations: Optional[List[dict]] = None
     pecs_items: Optional[List[dict]] = None
+    collection_ids: Optional[List[UUID]] = None
 
 
 class PhraseTranslationBase(SQLModel):
@@ -123,3 +126,20 @@ class Phrase(PhraseBase, table=True):
         back_populates="phrase",
         sa_relationship_kwargs={"cascade": "all, delete-orphan"}
     )
+    collections: List["PhraseCollection"] = Relationship(
+        back_populates="phrase",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
+
+
+class PECSInput(BaseModel):
+    id: str
+    image_url: str
+    name: str
+    position: int
+
+class PECSOutput(BaseModel):
+    id: str
+    token: str
+    phrase: str
+    position: int

@@ -15,12 +15,14 @@ class PECSCategoryBase(SQLModel):
     color: Optional[str] = Field(default="#000000")
     is_custom: Optional[bool] = Field(default=True)
     is_visible: Optional[bool] = Field(default=True)
+    name_custom: Optional[str] = Field(default=None, max_length=255)
 
 
 class PECSCategoryCreate(PECSCategoryBase):
     parent_id: Optional[UUID] = None
     name: Optional[str] = None
     lang: Optional[str] = None
+    name_custom: Optional[str] = None
     translations: Optional[List[dict]] = None
 
 
@@ -30,6 +32,7 @@ class PECSCategoryUpdate(SQLModel):
     color: Optional[str] = None
     is_custom: Optional[bool] = None
     is_visible: Optional[bool] = None
+    name_custom: Optional[str] = None
     translations: Optional[List[dict]] = None
 
 
@@ -107,3 +110,5 @@ class PECSCategoryItem(SQLModel, table=True):
     # Relationships
     pecs: PECS = Relationship(back_populates="categories")
     category: PECSCategory = Relationship(back_populates="pecs_items")
+
+

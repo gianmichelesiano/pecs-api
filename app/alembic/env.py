@@ -33,6 +33,7 @@ import app.models.pecs
 import app.models.pecs_category
 import app.models.phrase
 import app.models.favorite
+import app.models.image
 
 target_metadata = SQLModel.metadata
 

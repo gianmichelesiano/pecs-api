@@ -11,10 +11,12 @@ from .user import User
 class PECSBase(SQLModel):
     image_url: str = Field(max_length=500)
     is_custom: bool = Field(default=False)
+    name_custom: Optional[str] = Field(default=None, max_length=255)
 
 
 class PECSCreate(PECSBase):
     user_id: Optional[UUID] = None
+    name_custom: Optional[str] = None
     translations: Optional[List[dict]] = None
     category_ids: Optional[List[UUID]] = None
 
@@ -22,6 +24,7 @@ class PECSCreate(PECSBase):
 class PECSUpdate(SQLModel):
     image_url: Optional[str] = None
     is_custom: Optional[bool] = None
+    name_custom: Optional[str] = None
     translations: Optional[List[dict]] = None
     category_ids: Optional[List[UUID]] = None
 

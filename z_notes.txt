@@ -13,6 +13,8 @@ python -m alembic revision --autogenerate -m "add_lang_field_to_pictogram"
     
 python -m alembic upgrade head
 
+python -m alembic revision -m "Add pg_trgm extension"
+
 docker-compose -f docker-compose-backend.yml up
 
 

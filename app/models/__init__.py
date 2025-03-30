@@ -6,6 +6,7 @@ from .user import User, UserCreate, UserPublic, UsersPublic, UserUpdate, UserUpd
 from .post import Post, PostCreate, PostUpdate, PostPublic, PostsPublic
 from .nome import Nome, NomeCreate, NomeUpdate
 from .analyze_models import PhraseRequest, WordRequest, PictogramResponse
+from .image import Image, ImageBase, ImageCreate, ImageUpdate, ImagePublic, ImagesPublic
 
 # SyncLog models
 from .sync_log import SyncLog, SyncLogBase, SyncLogCreate, SyncLogRead
@@ -23,7 +24,12 @@ from .pecs_category import (
 from .phrase import (
     Phrase, PhraseBase, PhraseCreate, PhraseUpdate, PhraseRead,
     PhraseTranslation, PhraseTranslationBase, PhraseTranslationCreate, PhraseTranslationUpdate, PhraseTranslationRead,
-    PhrasePECS, PhrasePECSBase, PhrasePECSCreate, PhrasePECSUpdate, PhrasePECSRead
+    PhrasePECS, PhrasePECSBase, PhrasePECSCreate, PhrasePECSUpdate, PhrasePECSRead, PECSInput, PECSOutput
+)
+from .collection import (
+    Collection, CollectionBase, CollectionCreate, CollectionUpdate, CollectionRead,
+    CollectionTranslation, CollectionTranslationBase, CollectionTranslationCreate, CollectionTranslationUpdate, CollectionTranslationRead,
+    PhraseCollection
 )
 from .favorite import FavoritePECS, FavoritePECSBase, FavoritePhrase, FavoritePhraseBase
 
@@ -70,6 +76,12 @@ __all__ = [
     'Phrase', 'PhraseBase', 'PhraseCreate', 'PhraseUpdate', 'PhraseRead',
     'PhraseTranslation', 'PhraseTranslationBase', 'PhraseTranslationCreate', 'PhraseTranslationUpdate', 'PhraseTranslationRead',
     'PhrasePECS', 'PhrasePECSBase', 'PhrasePECSCreate', 'PhrasePECSUpdate', 'PhrasePECSRead',
+    # Collections
+    'Collection', 'CollectionBase', 'CollectionCreate', 'CollectionUpdate', 'CollectionRead',
+    'CollectionTranslation', 'CollectionTranslationBase', 'CollectionTranslationCreate', 'CollectionTranslationUpdate', 'CollectionTranslationRead',
+    'PhraseCollection',
     # Favorites
-    'FavoritePECS', 'FavoritePECSBase', 'FavoritePhrase', 'FavoritePhraseBase'
+    'FavoritePECS', 'FavoritePECSBase', 'FavoritePhrase', 'FavoritePhraseBase',
+    # Images
+    'Image', 'ImageBase', 'ImageCreate', 'ImageUpdate', 'ImagePublic', 'ImagesPublic'
 ]

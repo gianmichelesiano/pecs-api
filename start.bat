@@ -1,4 +1,3 @@
 @echo off
-call .\.venv\Scripts\activate
-python -m fastapi dev --port 5000 app/main.py
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 5000
 pause

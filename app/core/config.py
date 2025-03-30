@@ -1,3 +1,5 @@
+# Set the PICTOGRAMS_FILE and API_KEY attributes
+
 import os
 import pathlib
 import secrets
@@ -43,6 +45,11 @@ class Settings(BaseSettings):
     DEFAULT_LANGUAGE: str = "it"
     API_KEY: str | None = None  # Alias for OPENAI_API_KEY for backward compatibility
     PICTOGRAMS_FILE: str | None = None  # Will be set dynamically by get_pictograms_file
+    
+    # Supabase configuration
+    SUPABASE_URL: str | None = None
+    SUPABASE_KEY: str | None = None
+    SUPABASE_BUCKET: str = "images"  # Default bucket name
 
     BACKEND_CORS_ORIGINS: Annotated[
         list[AnyUrl] | str, BeforeValidator(parse_cors)
@@ -153,11 +160,8 @@ class Settings(BaseSettings):
         # Fallback to default file in app directory
         default_file = os.path.join(app_dir, "pittogrammi.json")
         print(f"Using default file: {default_file}")
-        
-        # If default file doesn't exist, create an empty one
-        if not os.path.exists(default_file):
-            with open(default_file, 'w', encoding='utf-8') as f:
-                f.write('{"pittogrammi": []}')
+        with open(default_file, 'w', encoding='utf-8') as f:
+            f.write('{"pittogrammi": []}')
         
         return default_file
 

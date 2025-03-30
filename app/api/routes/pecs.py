@@ -3,15 +3,25 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import select, Session
+from pydantic import BaseModel
 
 from app.api.deps import CurrentUser, SessionDep
 from app.models import (
     PECS, PECSCreate, PECSRead, PECSUpdate,
     PECSTranslation, PECSTranslationCreate, PECSTranslationRead, PECSTranslationUpdate,
-    Message
+    Message, CategoryTranslation,PECSCategoryItem
 )
 
 router = APIRouter(prefix="/pecs", tags=["pecs"])
+
+
+class CategoryTranslationResponse(BaseModel):
+    language_code: str
+    name: str
+
+class CategoryWithTranslations(BaseModel):
+    id: str  # Changed from UUID to str
+    translations: List[CategoryTranslationResponse]
 
 
 @router.get("/", response_model=List[PECSRead])
@@ -99,6 +109,7 @@ def create_pecs(
     pecs = PECS(
         image_url=pecs_in.image_url,
         is_custom=pecs_in.is_custom,
+        name_custom=pecs_in.name_custom.lower(),  # Save name_custom in lowercase
         user_id=current_user.id if pecs_in.is_custom else None
     )
     
@@ -112,7 +123,7 @@ def create_pecs(
             translation = PECSTranslation(
                 pecs_id=pecs.id,
                 language_code=translation_data.get("language_code"),
-                name=translation_data.get("name")
+                name=translation_data.get("name").lower()  # Save translation name in lowercase
             )
             session.add(translation)
         
@@ -130,10 +141,50 @@ def create_pecs(
             session.add(category_item)
         
         session.commit()
+        
         session.refresh(pecs)
     
     return pecs
 
+@router.get("/{pecs_id}/category", response_model=List[CategoryWithTranslations])
+def get_pecs_categories(
+    pecs_id: UUID,
+    session: SessionDep
+) -> Any:
+    """
+    Retrieve all categories with their translations associated with a specific PECS.
+    """
+    pecs = session.get(PECS, pecs_id)
+    if not pecs:
+        raise HTTPException(status_code=404, detail="PECS not found")
+    
+    query = select(
+        PECSCategoryItem.category_id,
+        CategoryTranslation.language_code,
+        CategoryTranslation.name
+    ).join(
+        CategoryTranslation,
+        PECSCategoryItem.category_id == CategoryTranslation.category_id
+    ).where(
+        PECSCategoryItem.pecs_id == pecs_id
+    )
+    
+    results = session.exec(query).all()
+    
+    # Organize results by category_id
+    categories = {}
+    for category_id, language_code, name in results:
+        if category_id not in categories:
+            categories[category_id] = {
+                "id": str(category_id),  # Convert UUID to string
+                "translations": []
+            }
+        categories[category_id]["translations"].append({
+            "language_code": language_code,
+            "name": name
+        })
+    
+    return list(categories.values())
 
 @router.put("/{pecs_id}", response_model=PECSRead)
 def update_pecs(
@@ -161,6 +212,8 @@ def update_pecs(
         pecs.image_url = update_data["image_url"]
     if "is_custom" in update_data:
         pecs.is_custom = update_data["is_custom"]
+    if "name_custom" in update_data:
+        pecs.name_custom = update_data["name_custom"]
     
     # Handle translations
     if "translations" in update_data and update_data["translations"]:

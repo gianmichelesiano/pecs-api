@@ -10,8 +10,8 @@ class WordRequest(SQLModel):
     word: str
 
 class PictogramResponse(SQLModel):
-    word: str
-    id: Optional[int] = None
+    word: Optional[str]
+    id: Optional[str] = None
     url: Optional[str] = None
     error: Optional[str] = None
 
