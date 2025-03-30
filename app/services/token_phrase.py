@@ -316,9 +316,7 @@ def phrase_2_token( sentence, language="it"):
         print(f"Errore durante l'elaborazione: {str(e)}")
         return {"error": str(e)}
 
-'''
-if __name__ == "__main__":
-    api_key = "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"
+
 
     
     
