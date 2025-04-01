@@ -43,6 +43,12 @@ def get_all_phrases(
     # Create PhraseRead objects with enhanced PECS info
     result = []
     for phrase in phrases:
+        # Get the language code from the phrase translations
+        language_code = None
+        if phrase.translations and len(phrase.translations) > 0:
+            language_code = phrase.translations[0].language_code
+        print("language_code", language_code)
+        
         # Create a new list for enhanced pecs_items
         enhanced_pecs_items = []
         
@@ -50,24 +56,40 @@ def get_all_phrases(
             pecs = session.get(PECS, pecs_item.pecs_id)
             pecs_info = None
             if pecs:
-                # Get first translation if available
+                # Try to get translation in the same language as the phrase
                 translation = None
                 if pecs.translations and len(pecs.translations) > 0:
-                    translation = pecs.translations[0]
+                    # First try to find a translation with the same language code
+                    if language_code:
+                        print("Cercando traduzione in lingua:", language_code)
+                        for t in pecs.translations:
+                            print("Traduzione disponibile:", t.language_code, t.name)
+                            if t.language_code == language_code:
+                                translation = t
+                                print("Trovata traduzione in lingua:", language_code)
+                                break
+                    
+                    # If no translation found with the same language code, use the first one
+                    if not translation:
+                        translation = pecs.translations[0]
+                        print("Nessuna traduzione trovata in lingua:", language_code, "usando:", translation.language_code)
                 
+                # Costruisci pecs_info con language_code della frase, anche se la traduzione è in un'altra lingua
                 pecs_info = {
                     "id": pecs.id,
                     "image_url": pecs.image_url,
                     "name": translation.name if translation else None,
-                    "language_code": translation.language_code if translation else None
+                    "language_code": language_code if language_code else (translation.language_code if translation else None)
                 }
+                print("pecs_info costruito:", pecs_info)
             
             # Create a new PhrasePECSRead object with pecs_info
             enhanced_pecs_items.append(PhrasePECSRead(
                 phrase_id=pecs_item.phrase_id,
                 pecs_id=pecs_item.pecs_id,
                 position=pecs_item.position,
-                pecs_info=pecs_info
+                pecs_info=pecs_info,
+                origin=pecs_item.origin if hasattr(pecs_item, 'origin') else None
             ))
         
         # Create a PhraseRead object with the enhanced pecs_items
@@ -103,6 +125,9 @@ def get_phrases_by_language(
     # Create PhraseRead objects with enhanced PECS info
     result = []
     for phrase in phrases:
+        # Use the provided language code
+        language_code = code
+        
         # Create a new list for enhanced pecs_items
         enhanced_pecs_items = []
         
@@ -110,24 +135,39 @@ def get_phrases_by_language(
             pecs = session.get(PECS, pecs_item.pecs_id)
             pecs_info = None
             if pecs:
-                # Get first translation if available
+                # Try to get translation in the same language as the phrase
                 translation = None
                 if pecs.translations and len(pecs.translations) > 0:
-                    translation = pecs.translations[0]
+                    # First try to find a translation with the same language code
+                    if language_code:
+                        for t in pecs.translations:
+                            if t.language_code == language_code:
+                                translation = t
+                                break
+                    
+                    # If no translation found with the same language code, use the first one
+                    if not translation:
+                        translation = pecs.translations[0]
                 
-                pecs_info = {
-                    "id": pecs.id,
-                    "image_url": pecs.image_url,
-                    "name": translation.name if translation else None,
-                    "language_code": translation.language_code if translation else None
-                }
+            # Qui è dove impostiamo il language_code nel pecs_info
+            # Nota: usiamo il language_code della frase (it), non quello della traduzione PECS (de)
+            pecs_info = {
+                "id": pecs.id,
+                "image_url": pecs.image_url,
+                "name": translation.name if translation else None,
+                "language_code": language_code if language_code else (translation.language_code if translation else None)
+            }
+            print("IMPORTANTE - pecs_info costruito:", pecs_info)
+            print("IMPORTANTE - language_code della frase:", language_code)
+            print("IMPORTANTE - language_code della traduzione PECS:", translation.language_code if translation else None)
             
             # Create a new PhrasePECSRead object with pecs_info
             enhanced_pecs_items.append(PhrasePECSRead(
                 phrase_id=pecs_item.phrase_id,
                 pecs_id=pecs_item.pecs_id,
                 position=pecs_item.position,
-                pecs_info=pecs_info
+                pecs_info=pecs_info,
+                origin=pecs_item.origin if hasattr(pecs_item, 'origin') else None
             ))
         
         # Create a PhraseRead object with the enhanced pecs_items
@@ -153,34 +193,60 @@ def get_phrase(
     Retrieve a specific phrase by ID.
     """
     phrase = session.get(Phrase, phrase_id)
+    print("phrase---------", phrase)
     if not phrase:
         raise HTTPException(status_code=404, detail="Phrase not found")
     
+    # Get the language code from the phrase translations
+    language_code = None
+    if phrase.translations and len(phrase.translations) > 0:
+        language_code = phrase.translations[0].language_code
+    print("language_code", language_code)
     # Create a new list for enhanced pecs_items
     enhanced_pecs_items = []
     
     for pecs_item in phrase.pecs_items:
+        print(pecs_item)
         pecs = session.get(PECS, pecs_item.pecs_id)
+        print("pecs->", pecs)
+        print("pecs-nnnnn>", pecs.translations)
+        
         pecs_info = None
         if pecs:
-            # Get first translation if available
+            # Try to get translation in the same language as the phrase
             translation = None
             if pecs.translations and len(pecs.translations) > 0:
-                translation = pecs.translations[0]
+                # First try to find a translation with the same language code
+                if language_code:
+                    for t in pecs.translations:
+                        if t.language_code == language_code:
+                            translation = t
+                            break
+                
+                # If no translation found with the same language code, use the first one
+                if not translation:
+                    translation = pecs.translations[0]
             
+            # Qui è dove impostiamo il language_code nel pecs_info
+            # Nota: usiamo il language_code della frase (it), non quello della traduzione PECS (de)
             pecs_info = {
                 "id": pecs.id,
                 "image_url": pecs.image_url,
                 "name": translation.name if translation else None,
-                "language_code": translation.language_code if translation else None
+                "language_code": language_code if language_code else (translation.language_code if translation else None)
             }
+            print("IMPORTANTE - pecs_info costruito:", pecs_info)
+            print("IMPORTANTE - language_code della frase:", language_code)
+            print("IMPORTANTE - language_code della traduzione PECS:", translation.language_code if translation else None)
+            
         
         # Create a new PhrasePECSRead object with pecs_info
         enhanced_pecs_items.append(PhrasePECSRead(
             phrase_id=pecs_item.phrase_id,
             pecs_id=pecs_item.pecs_id,
             position=pecs_item.position,
-            pecs_info=pecs_info
+            pecs_info=pecs_info,
+            origin=pecs_item.origin if hasattr(pecs_item, 'origin') else None
         ))
     
     # Create a PhraseRead object with the enhanced pecs_items
@@ -208,6 +274,11 @@ def get_pecs_in_phrase(
     if not phrase:
         raise HTTPException(status_code=404, detail="Phrase not found")
     
+    # Get the language code from the phrase translations
+    language_code = None
+    if phrase.translations and len(phrase.translations) > 0:
+        language_code = phrase.translations[0].language_code
+    
     # Get PECS in this phrase with positions
     query = select(PhrasePECS).where(
         PhrasePECS.phrase_id == phrase_id
@@ -221,23 +292,34 @@ def get_pecs_in_phrase(
         pecs = session.get(PECS, pp.pecs_id)
         pecs_info = None
         if pecs:
-            # Get first translation if available
+            # Try to get translation in the same language as the phrase
             translation = None
             if pecs.translations and len(pecs.translations) > 0:
-                translation = pecs.translations[0]
+                # First try to find a translation with the same language code
+                if language_code:
+                    for t in pecs.translations:
+                        if t.language_code == language_code:
+                            translation = t
+                            break
+                
+                # If no translation found with the same language code, use the first one
+                if not translation:
+                    translation = pecs.translations[0]
             
             pecs_info = {
                 "id": pecs.id,
                 "image_url": pecs.image_url,
                 "name": translation.name if translation else None,
-                "language_code": translation.language_code if translation else None
+                "language_code": language_code if language_code else (translation.language_code if translation else None)
             }
+            print(pecs_info)
         
         result.append(PhrasePECSRead(
             phrase_id=pp.phrase_id,
             pecs_id=pp.pecs_id,
             position=pp.position,
-            pecs_info=pecs_info
+            pecs_info=pecs_info,
+            origin=pp.origin if hasattr(pp, 'origin') else None
         ))
     
     return result
@@ -254,7 +336,8 @@ def create_phrase(
     """
     # Create phrase
     phrase = Phrase(
-        user_id=current_user.id
+        user_id=current_user.id,
+        origin=phrase_in.origin if hasattr(phrase_in, 'origin') else None
     )
     # Stampa il payload ricevuto
     print(f"Payload ricevuto: {phrase_in}")
@@ -297,11 +380,76 @@ def create_phrase(
             
             if not pecs:
                 continue  # Skip invalid PECS
+                
+            # Get the language code from the phrase translations
+            language_code = None
+            if phrase_in.translations and len(phrase_in.translations) > 0:
+                language_code = phrase_in.translations[0].get("language_code")
             
+            # Try to find a PECS with the same image but with a translation in the language of the phrase
+            if language_code and pecs.translations and len(pecs.translations) > 0:
+                # Check if the current PECS has a translation in the language of the phrase
+                has_translation_in_language = False
+                for t in pecs.translations:
+                    if t.language_code == language_code:
+                        has_translation_in_language = True
+                        break
+                
+                # If the current PECS doesn't have a translation in the language of the phrase,
+                # try to find another PECS with the same image but with a translation in the language of the phrase
+                if not has_translation_in_language:
+                    # Get the image URL of the current PECS
+                    image_url = pecs.image_url
+                    
+                    # Find all PECS with the same image URL
+                    query = select(PECS).where(
+                        PECS.image_url == image_url
+                    )
+                    all_pecs_with_same_image = session.exec(query).all()
+                    
+                    # Check if any of them has a translation in the language of the phrase
+                    for p in all_pecs_with_same_image:
+                        for t in p.translations:
+                            if t.language_code == language_code:
+                                # Found a PECS with the same image and a translation in the language of the phrase
+                                pecs = p
+                                print(f"Found a better PECS with translation in {language_code}: {pecs.id}")
+                                break
+                        else:
+                            # Continue the outer loop if the inner loop wasn't broken
+                            continue
+                        # Break the outer loop if the inner loop was broken
+                        break
+                
+                
+            
+            # Get origin from pecs_item if provided, otherwise use PECS name in the same language as the phrase
+            origin = pecs_item.get("origin")
+            if not origin and pecs.translations and len(pecs.translations) > 0:
+                # Get the language code from the phrase translations
+                language_code = None
+                if phrase_in.translations and len(phrase_in.translations) > 0:
+                    language_code = phrase_in.translations[0].get("language_code")
+                
+                # Try to find a translation with the same language code
+                translation = None
+                if language_code:
+                    for t in pecs.translations:
+                        if t.language_code == language_code:
+                            translation = t
+                            break
+                
+                # If no translation found with the same language code, use the first one
+                if not translation:
+                    translation = pecs.translations[0]
+                
+                origin = translation.name
+                
             phrase_pecs = PhrasePECS(
                 phrase_id=phrase.id,
                 pecs_id=pecs.id,  # Use the actual UUID from the found PECS
-                position=pecs_item.get("position", 0)
+                position=pecs_item.get("position", 0),
+                origin=origin
             )
             session.add(phrase_pecs)
         
@@ -376,6 +524,10 @@ def update_phrase(
     # Update phrase fields
     update_data = phrase_in.model_dump(exclude_unset=True)
     
+    # Update origin field if provided
+    if "origin" in update_data:
+        phrase.origin = update_data["origin"]
+    
     # Handle translations
     if "translations" in update_data and update_data["translations"]:
         # Get existing translations
@@ -433,10 +585,38 @@ def update_phrase(
             if not pecs:
                 continue  # Skip invalid PECS
             
+            # Get origin from pecs_item if provided, otherwise use PECS name in the same language as the phrase
+            origin = pecs_item.get("origin")
+            if not origin and pecs.translations and len(pecs.translations) > 0:
+                # Get the language code from the phrase translations
+                language_code = None
+                for translation_data in update_data.get("translations", []):
+                    language_code = translation_data.get("language_code")
+                    if language_code:
+                        break
+                
+                if not language_code and phrase.translations and len(phrase.translations) > 0:
+                    language_code = phrase.translations[0].language_code
+                
+                # Try to find a translation with the same language code
+                translation = None
+                if language_code:
+                    for t in pecs.translations:
+                        if t.language_code == language_code:
+                            translation = t
+                            break
+                
+                # If no translation found with the same language code, use the first one
+                if not translation:
+                    translation = pecs.translations[0]
+                
+                origin = translation.name
+                
             phrase_pecs = PhrasePECS(
                 phrase_id=phrase.id,
                 pecs_id=pecs.id,  # Use the actual UUID from the found PECS
-                position=pecs_item.get("position", 0)
+                position=pecs_item.get("position", 0),
+                origin=origin
             )
             session.add(phrase_pecs)
     
@@ -551,59 +731,112 @@ def add_pecs_to_phrase(
         session.commit()
         session.refresh(existing)
         
+        # Get the language code from the phrase translations
+        language_code = None
+        if phrase.translations and len(phrase.translations) > 0:
+            language_code = phrase.translations[0].language_code
+        
         # Get PECS info
         pecs_info = None
         if pecs:
-            # Get first translation if available
+            # Try to get translation in the same language as the phrase
             translation = None
             if pecs.translations and len(pecs.translations) > 0:
-                translation = pecs.translations[0]
+                # First try to find a translation with the same language code
+                if language_code:
+                    for t in pecs.translations:
+                        if t.language_code == language_code:
+                            translation = t
+                            break
+                
+                # If no translation found with the same language code, use the first one
+                if not translation:
+                    translation = pecs.translations[0]
             
             pecs_info = {
                 "id": pecs.id,
                 "image_url": pecs.image_url,
                 "name": translation.name if translation else None,
-                "language_code": translation.language_code if translation else None
+                "language_code": language_code if language_code else (translation.language_code if translation else None)
             }
         
         return PhrasePECSRead(
             phrase_id=existing.phrase_id,
             pecs_id=existing.pecs_id,
             position=existing.position,
-            pecs_info=pecs_info
+            pecs_info=pecs_info,
+            origin=existing.origin if hasattr(existing, 'origin') else None
         )
     
-    # Create association
+    # Create association with origin in the same language as the phrase
+    # Get the language code from the phrase translations
+    language_code = None
+    if phrase.translations and len(phrase.translations) > 0:
+        language_code = phrase.translations[0].language_code
+    
+    # Get origin in the same language as the phrase
+    origin = None
+    if pecs.translations and len(pecs.translations) > 0:
+        # Try to find a translation with the same language code
+        translation = None
+        if language_code:
+            for t in pecs.translations:
+                if t.language_code == language_code:
+                    translation = t
+                    break
+        
+        # If no translation found with the same language code, use the first one
+        if not translation:
+            translation = pecs.translations[0]
+        
+        origin = translation.name
+    
     phrase_pecs = PhrasePECS(
         phrase_id=phrase_id,
         pecs_id=pecs_id,
-        position=position
+        position=position,
+        origin=origin
     )
     
     session.add(phrase_pecs)
     session.commit()
     session.refresh(phrase_pecs)
     
+    # Get the language code from the phrase translations
+    language_code = None
+    if phrase.translations and len(phrase.translations) > 0:
+        language_code = phrase.translations[0].language_code
+    
     # Get PECS info
     pecs_info = None
     if pecs:
-        # Get first translation if available
+        # Try to get translation in the same language as the phrase
         translation = None
         if pecs.translations and len(pecs.translations) > 0:
-            translation = pecs.translations[0]
+            # First try to find a translation with the same language code
+            if language_code:
+                for t in pecs.translations:
+                    if t.language_code == language_code:
+                        translation = t
+                        break
+            
+            # If no translation found with the same language code, use the first one
+            if not translation:
+                translation = pecs.translations[0]
         
         pecs_info = {
             "id": pecs.id,
             "image_url": pecs.image_url,
             "name": translation.name if translation else None,
-            "language_code": translation.language_code if translation else None
+            "language_code": language_code if language_code else (translation.language_code if translation else None)
         }
     
     return PhrasePECSRead(
         phrase_id=phrase_pecs.phrase_id,
         pecs_id=phrase_pecs.pecs_id,
         position=phrase_pecs.position,
-        pecs_info=pecs_info
+        pecs_info=pecs_info,
+        origin=phrase_pecs.origin if hasattr(phrase_pecs, 'origin') else None
     )
 
 
@@ -649,26 +882,41 @@ def update_pecs_position_in_phrase(
     session.commit()
     session.refresh(phrase_pecs)
     
+    # Get the language code from the phrase translations
+    language_code = None
+    if phrase.translations and len(phrase.translations) > 0:
+        language_code = phrase.translations[0].language_code
+    
     # Get PECS info
     pecs_info = None
     if pecs:
-        # Get first translation if available
+        # Try to get translation in the same language as the phrase
         translation = None
         if pecs.translations and len(pecs.translations) > 0:
-            translation = pecs.translations[0]
+            # First try to find a translation with the same language code
+            if language_code:
+                for t in pecs.translations:
+                    if t.language_code == language_code:
+                        translation = t
+                        break
+            
+            # If no translation found with the same language code, use the first one
+            if not translation:
+                translation = pecs.translations[0]
         
         pecs_info = {
             "id": pecs.id,
             "image_url": pecs.image_url,
             "name": translation.name if translation else None,
-            "language_code": translation.language_code if translation else None
+            "language_code": language_code if language_code else (translation.language_code if translation else None)
         }
-    
+        
     return PhrasePECSRead(
         phrase_id=phrase_pecs.phrase_id,
         pecs_id=phrase_pecs.pecs_id,
         position=phrase_pecs.position,
-        pecs_info=pecs_info
+        pecs_info=pecs_info,
+        origin=phrase_pecs.origin if hasattr(phrase_pecs, 'origin') else None
     )
 
 

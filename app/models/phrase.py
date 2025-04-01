@@ -12,7 +12,7 @@ from .pecs import PECS
 
 class PhraseBase(SQLModel):
     # Base class for phrases
-    pass
+    origin: Optional[str] = Field(default=None, max_length=255)
 
 
 class PhraseCreate(PhraseBase):
@@ -26,6 +26,7 @@ class PhraseUpdate(SQLModel):
     translations: Optional[List[dict]] = None
     pecs_items: Optional[List[dict]] = None
     collection_ids: Optional[List[UUID]] = None
+    origin: Optional[str] = None
 
 
 class PhraseTranslationBase(SQLModel):
@@ -69,6 +70,7 @@ class PhraseTranslation(PhraseTranslationBase, table=True):
 
 class PhrasePECSBase(SQLModel):
     position: int
+    origin: Optional[str] = Field(default=None, max_length=255)
 
 
 class PhrasePECSCreate(PhrasePECSBase):
@@ -78,6 +80,7 @@ class PhrasePECSCreate(PhrasePECSBase):
 
 class PhrasePECSUpdate(SQLModel):
     position: Optional[int] = None
+    origin: Optional[str] = None
 
 
 class PhrasePECSRead(PhrasePECSBase):

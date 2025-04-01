@@ -14,6 +14,4 @@ class PictogramResponse(SQLModel):
     id: Optional[str] = None
     url: Optional[str] = None
     error: Optional[str] = None
-
-
-
+    origin: Optional[str] = None

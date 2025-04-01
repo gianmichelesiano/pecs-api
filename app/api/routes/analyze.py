@@ -5,7 +5,7 @@ import json
 from app.models.analyze_models import PhraseRequest, WordRequest, PictogramResponse
 from app.services.pictogram_search import PictogramSearch, find_id_by_name, find_pecs_by_name, create_options_list
 from app.api.deps import SessionDep
-from app.services.sentence_tokenizer import SentenceTokenizer
+from app.services.tokenizer import TextTokenizer
 from app.core.config import settings
 from app.services.to_singolare import to_singolare
 from app.services.parola_simile import trova_parole_simili
@@ -17,7 +17,7 @@ with open(settings.PICTOGRAMS_FILE, 'r', encoding='utf-8') as file:
     pictograms_data = json.load(file)
 
 # Initialize tokenizer service (doesn't depend on pictograms file)
-tokenizer = SentenceTokenizer(settings.API_KEY)
+tokenizer = TextTokenizer(settings.API_KEY)
 
 # Function to get pictograms data based on language
 def get_pictograms_data(language: Optional[str] = None):
@@ -84,88 +84,115 @@ async def process_phrase(
         
         sentence = request.phrase
         
-        print(f"Processing phrase in language: {language or settings.DEFAULT_LANGUAGE}")
-        print(sentence)
+        # Tokenize the sentence
         actual_language = language or settings.DEFAULT_LANGUAGE
-        result = tokenizer.tokenize_sentence(sentence, actual_language)
-        print(result)
+        results = tokenizer.tokenize(sentence, actual_language)
         
-        # Process tokens and find pictogram IDs
+        print("Tokenized results:", results)
+        
         pictograms = []
-        if result:
-            single_tokens = result.split(" ")
-            print(single_tokens)
-            for token in single_tokens:
-                token_clean = token.strip().replace('"', '')
-                
-                # Try to find the PECS ID in the database first
-                actual_language = language or settings.DEFAULT_LANGUAGE
-                pecs_id = find_pecs_id_by_name(db, token_clean, actual_language)
-                
-                if pecs_id:
-                    pictograms.append({
-                        "word": token_clean,
-                        "id": str(pecs_id),
-                        "url": f"/api/v1/pecs/{pecs_id}/image"  # URL to the PECS image
-                    })
-                    continue
-                
-                # If not found in the database, fall back to the old method
-                pictogram_id = find_id_by_name(token_clean, pictograms_data)
-                
-                if pictogram_id:
-                    pictograms.append({
-                        "word": token_clean,
-                        "id": pictogram_id,
-                        "url": f"https://api.arasaac.org/v1/pictograms/{pictogram_id}?download=false"
-                    })
-                else:
-                    # Handle missing pictogram
-                    options_list = create_options_list(token_clean, search_service)
-                    options_str = ', '.join(options_list)
+        
+        # If tokenizer returned a list of tokens
+        if isinstance(results, list):
+            for result in results:
+                # Check if result is a dictionary with 'token' key
+                if isinstance(result, dict) and 'token' in result:
+                    token = result['token']
+                    origin = result.get('origin', token)  # Use token as fallback if origin not present
                     
-                    print(result)
+                    # Try to find the PECS in the database
+                    pecs = find_pecs_by_name(db, token, actual_language)
                     
-                    response_text = tokenizer.find_missing_word(sentence, token_clean, options_str)
-                    
-                    # Clean up the response
-                    if response_text:
-                        response_text = response_text.replace('```json', '')
-                        response_text = response_text.replace('```', '')
-                        response_text = response_text.strip()
-                    else:
+                    if len(pecs) > 0:
+                        image_url = pecs[0]['pecs'].image_url
+                        # Extract ID from URL
+                        if "api.arasaac.org/v1/pictograms/" in image_url:
+                            pecs_id = image_url.split("api.arasaac.org/v1/pictograms/")[1].split("?")[0]
+                        else:
+                            pecs_id = str(pecs[0]['pecs'].id)
+                            
                         pictograms.append({
-                            "word": token_clean,
-                            "error": "no response from tokenizer"
+                            "origin": origin,
+                            "word": token,
+                            "id": pecs_id,
+                            "url": image_url,
+                            "error": None
                         })
-                        continue
-                    
-                    try:
-                        data = json.loads(response_text)
-                        found_word = data.get('found_word', '')
+                    else:
+                        # If not found in the database, fall back to the old method
+                        pictogram_id = find_id_by_name(token, pictograms_data)
                         
-                        pictogram_id = find_id_by_name(found_word, pictograms_data)
                         if pictogram_id:
                             pictograms.append({
-                                "word": token_clean,
+                                "origin": origin,
+                                "word": token,
                                 "id": pictogram_id,
-                                "url": f"https://api.arasaac.org/v1/pictograms/{pictogram_id}?download=false"
+                                "url": f"https://api.arasaac.org/v1/pictograms/{pictogram_id}",
+                                "error": None
                             })
                         else:
+                            # Use default pictogram if not found
                             pictograms.append({
-                                "word": token_clean,
-                                "error": "not found"
+                                "origin": origin,
+                                "word": token,
+                                "id": "3046",
+                                "url": f"https://api.arasaac.org/v1/pictograms/3046",
+                                "error": None
                             })
-                    except json.JSONDecodeError:
+        else:
+            # Fallback to simple tokenization if the tokenizer didn't return a list
+            # This is for backward compatibility
+            tokens = str(results).replace('"', '').split()
+            
+            for token in tokens:
+                token_clean = token.strip()
+                
+                # Try to find the PECS in the database
+                pecs = find_pecs_by_name(db, token_clean, actual_language)
+                
+                if len(pecs) > 0:
+                    image_url = pecs[0]['pecs'].image_url
+                    # Extract ID from URL
+                    if "api.arasaac.org/v1/pictograms/" in image_url:
+                        pecs_id = image_url.split("api.arasaac.org/v1/pictograms/")[1].split("?")[0]
+                    else:
+                        pecs_id = str(pecs[0]['pecs'].id)
+                        
+                    pictograms.append({
+                        "origin": token_clean,
+                        "word": token_clean,
+                        "id": pecs_id,
+                        "url": image_url,
+                        "error": None
+                    })
+                else:
+                    # If not found in the database, fall back to the old method
+                    pictogram_id = find_id_by_name(token_clean, pictograms_data)
+                    
+                    if pictogram_id:
                         pictograms.append({
+                            "origin": token_clean,
                             "word": token_clean,
-                            "error": "invalid response format"
+                            "id": pictogram_id,
+                            "url": f"https://api.arasaac.org/v1/pictograms/{pictogram_id}",
+                            "error": None
+                        })
+                    else:
+                        # Use default pictogram if not found
+                        pictograms.append({
+                            "origin": token_clean,
+                            "word": token_clean,
+                            "id": "3046",
+                            "url": f"https://api.arasaac.org/v1/pictograms/3046",
+                            "error": None
                         })
         
         return pictograms
     
     except Exception as e:
+        print(f"Error processing phrase: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.post("/get-options", response_model=List[PictogramResponse])
 async def get_options(
@@ -194,9 +221,6 @@ async def get_options(
         request: Word request object containing the word to find options for
         language: Language code for pictogram search (e.g., 'it', 'en', 'de', 'es', 'fr')
     """
-
-
-    
     word = request.word
     print(word)
     
@@ -206,7 +230,6 @@ async def get_options(
     pictograms = []
     token_clean = word.strip().replace('"', '').lower()
     
-
     print(word)
     results = find_pecs_by_name(db, word, "it", 0.3)
     print(results)
@@ -214,12 +237,25 @@ async def get_options(
     for result in results:
         pecs_record = result["pecs"]
         translation_name = result["translation_name"]
+        
+        # Extract ID from URL if it's an Arasaac URL
+        image_url = pecs_record.image_url or ""
+        pecs_id = str(pecs_record.id)
+        
+        if "api.arasaac.org/v1/pictograms/" in image_url:
+            try:
+                pecs_id = image_url.split("api.arasaac.org/v1/pictograms/")[1].split("?")[0]
+            except:
+                pass
 
         pictograms.append({
+            "origin": word,
             "word": translation_name or pecs_record.name_custom or "",
-            "id": str(pecs_record.id),
-            "url": pecs_record.image_url or ""
+            "id": pecs_id,
+            "url": image_url,
+            "error": None
         })
+    
     print(pictograms)
     return pictograms
 
