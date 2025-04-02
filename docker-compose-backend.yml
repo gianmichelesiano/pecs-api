@@ -20,11 +20,11 @@ services:
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_DB=${POSTGRES_DB:-pecs}
 
-  backend:
+  backend-pecs:
     build:
       context: .
     ports:
-      - "0.0.0.0:5000:5000"
+      - "5000:5000"
     volumes:
       - ./app/data:/app/app/data
     env_file:
