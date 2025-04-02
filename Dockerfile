@@ -29,4 +29,4 @@ COPY ./app /app/app
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-install-project
 
-CMD ["fastapi", "run", "--workers", "4", "app/main.py"]
+CMD ["fastapi", "run", "--workers", "2", "app/main.py"]

@@ -30,7 +30,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-        restart: true
     command: bash scripts/prestart.sh
     env_file:
       - .env
@@ -38,7 +37,7 @@ services:
       - DOMAIN=${DOMAIN:-speats.ch}
       - FRONTEND_HOST=${FRONTEND_HOST:-http://localhost:5174}
       - ENVIRONMENT=${ENVIRONMENT:-development}
-      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS:-http://localhost,http://localhost:5174}
+      - BACKEND_CORS_ORIGINS=http://127.0.0.1,http://127.0.0.1:5174,http://localhost,http://localhost:5174,https://dashboard-pecs.speats.ch
       - SECRET_KEY=${SECRET_KEY:-89ExatSNsv8CPT9eyow07HXQNmxU0xQk-kda4nPbUoU}
       - FIRST_SUPERUSER=${FIRST_SUPERUSER:-bandigare@gmail.com}
       - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD:-CaneRed1975-}
@@ -85,7 +84,7 @@ services:
       - DEFAULT_LANGUAGE=${DEFAULT_LANGUAGE:-it}
     command: bash -c "python -m app.backend_pre_start && alembic upgrade head && fastapi run --workers 4 --port 5000 app/main.py"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/api/v1/utils/health-check/ && curl -f http://localhost:5000/api/v1/utils/db-check/"]
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/v1/utils/health-check/"]
       interval: 10s
       timeout: 5s
       retries: 5
