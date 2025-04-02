@@ -25,6 +25,10 @@ services:
       context: .
     ports:
       - "5000:5000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api-pecs-router.rule=Host(`api-pecs-backend.speats.ch`)"
+      - "traefik.http.services.api-pecs-service.loadbalancer.server.port=5000"
     volumes:
       - ./app/data:/app/app/data
     env_file:
@@ -58,3 +62,8 @@ services:
 
 volumes:
   app-db-data:
+
+networks:
+  default:
+    external:
+      name: traefik-public
