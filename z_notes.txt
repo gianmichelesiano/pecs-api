@@ -15,7 +15,8 @@ python -m alembic upgrade head
 
 python -m alembic revision -m "Add pg_trgm extension"
 
-docker-compose -f docker-compose-backend.yml up
+docker-compose -f docker-compose-backend.yml down --remove-orphans
+docker-compose -f docker-compose-backend.yml up -d
 
 
 sul server
@@ -34,9 +35,12 @@ py -3 -m uv sync
 
 
 docker-compose -f docker-compose.traefik.yml --env-file .env.traefik down
-
 docker-compose exec backend-pecs bash
 
 # Once inside the container, run the scripts
 python -m script.import_categories
 python -m script.import_pecs
+
+quando faccio update
+docker-compose -f docker-compose.yml down --remove-orphans
+docker-compose -f docker-compose.yml up -d

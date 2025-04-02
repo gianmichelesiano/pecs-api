@@ -8,3 +8,6 @@ htmlcov
 .venv
 .env
 .env-linode
+
+
+z_notes.txt

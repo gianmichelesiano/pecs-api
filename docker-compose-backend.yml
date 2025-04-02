@@ -1,6 +1,25 @@
-version: '3'
+version: '3.8'
 
 services:
+  db:
+    image: postgres:12
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+    volumes:
+      - app-db-data:/var/lib/postgresql/data/pgdata
+    env_file:
+      - .env
+    environment:
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-root}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-pecs}
+
   backend:
     build:
       context: .
@@ -11,7 +30,7 @@ services:
     env_file:
       - .env
     environment:
-      - POSTGRES_SERVER=host.docker.internal
+      - POSTGRES_SERVER=db
       - POSTGRES_PORT=5432
       - POSTGRES_DB=pecs
       - POSTGRES_USER=postgres
@@ -26,7 +45,13 @@ services:
       - DEFAULT_LANGUAGE=${DEFAULT_LANGUAGE:-it}
     command: bash -c "python -m app.backend_pre_start && alembic upgrade head && fastapi run --workers 4 --port 5000 app/main.py"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/api/v1/utils/health-check/ && curl -f http://localhost:5000/api/v1/utils/db-check/"]
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/v1/utils/health-check/"]
       interval: 10s
       timeout: 5s
       retries: 5
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  app-db-data:
