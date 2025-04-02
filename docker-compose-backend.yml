@@ -43,6 +43,9 @@ services:
       - BACKEND_CORS_ORIGINS=http://localhost,http://localhost:5174
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - DEFAULT_LANGUAGE=${DEFAULT_LANGUAGE:-it}
+      - SUPABASE_URL=${SUPABASE_URL:-https://ypsljlrzdpkibowewide.co}
+      - SUPABASE_KEY=${SUPABASE_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCNTU2NjgsImV4cCI6MjA1NzUzMTY2OH0.9H3ovjW7naUvG3Y_TozwgaQnIqw_PfhgPgz53ZwaYBU}
+      - SUPABASE_BUCKET=${SUPABASE_BUCKET:-pecs}
     command: bash -c "python -m app.backend_pre_start && alembic upgrade head && fastapi run --workers 4 --port 5000 app/main.py"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/api/v1/utils/health-check/"]
