@@ -24,7 +24,7 @@ services:
     build:
       context: .
     ports:
-      - "5000:5000"
+      - "0.0.0.0:5000:5000"
     volumes:
       - ./app/data:/app/app/data
     env_file:
